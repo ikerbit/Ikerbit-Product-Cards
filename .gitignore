@@ -1,0 +1,43 @@
+# Operating system
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.*
+
+# PHPUnit
+.phpunit.result.cache
+
+# Test coverage
+coverage/
+
+# Cache
+.cache/
+tmp/
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# AI tools
+.claude/
+.opencode/
+.cursor/
+.augment/
