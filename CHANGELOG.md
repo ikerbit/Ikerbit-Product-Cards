@@ -24,6 +24,11 @@
 
 ---
 
+---
+
+## v2.5.2 — Prueba de update checker
+- Bump de versión para validar el funcionamiento del Plugin Update Checker
+
 ## v2.5.1 — Plugin Update Checker
 - Integración de Plugin Update Checker (YahnisElsts) para actualizaciones automáticas desde GitHub releases
 - Actualizaciones desde WordPress admin cuando se publiquen nuevas releases en GitHub

@@ -2,6 +2,9 @@
 
 ## Implemented
 
+### v2.5.2 — Update checker validation
+- Version bump to validate Plugin Update Checker functionality
+
 ### v2.5.1 — Plugin Update Checker
 - Integration of Plugin Update Checker (YahnisElsts v5.7) for automatic updates from GitHub releases
 - WordPress admin will show update notifications for new GitHub releases
