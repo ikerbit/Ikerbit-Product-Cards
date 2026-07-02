@@ -435,7 +435,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.0.0'
+        '2.5.0'
     );
     wp_enqueue_style(
         'ipc-fonts',

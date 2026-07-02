@@ -6,12 +6,32 @@
     ikerbit-product-cards.php   ← Plugin principal
     ipc-edit.php                ← Página de edición de ofertas en admin
     ipc-styles.css              ← CSS compartido (cards, grids, layouts)
+    AGENTS.md                   ← Instrucciones para agentes AI
     CHANGELOG.md                ← Este archivo
     templates/
         single-ipc_oferta.php       ← Página individual de oferta
         taxonomy-ipc_categoria.php  ← Listado de ofertas por categoría
         archive-ipc_oferta.php      ← Página general /ofertas/
+    docs/
+        ARCHITECTURE.md             ← Arquitectura del plugin
+        DEVELOPMENT.md              ← Guía de desarrollo
+        DECISIONS.md                ← Decisiones de arquitectura
+        ROADMAP.md                  ← Hoja de ruta
+        BACKLOG.md                  ← Deuda técnica y mejoras
 ```
+
+---
+
+## v2.5.0 — Taxonomías, GA4, estadísticas y documentación
+- Taxonomías `ipc_marca` y `ipc_producto` para clasificar ofertas por marca y producto
+- Soporte de wildcard (`*`) en shortcodes para filtrar por prefijo de marca o producto
+- Integración GA4: toggle y Measurement ID en ajustes para enviar eventos `affiliate_visit` y `affiliate_click`
+- Endpoint REST `DELETE /ipc/v1/oferta/{id}` para eliminar ofertas
+- Dashboard de estadísticas con KPIs (visitas totales, clicks totales, CTR global)
+- Top 10 ofertas por clicks, CTR por categoría, CTR por marketplace
+- Detección de ofertas con visitas pero sin clicks (candidatas a optimizar)
+- Campo `ipc_ultimo_click` en editor
+- Documentación completa del proyecto (AGENTS.md + docs/)
 
 ---
 
