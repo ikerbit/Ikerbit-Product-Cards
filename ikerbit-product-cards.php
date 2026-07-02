@@ -531,7 +531,7 @@ function ipc_settings_page() {
     $ga4_enabled   = get_option('ipc_ga4_enabled', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.5</h1>
+        <h1>Ikerbit Product Cards v2.5.1</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
