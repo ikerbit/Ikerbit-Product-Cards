@@ -6,7 +6,7 @@ Technical debt, code smells, and improvement opportunities discovered during cod
 
 | ID | Severity | File | Description |
 |----|----------|------|-------------|
-| B1 | Low | `ikerbit-product-cards.php:438` | CSS version `2.0.0` hardcoded in `wp_enqueue_style`; should match plugin version `2.5.0` |
+| B1 | ~~Low~~ | `ikerbit-product-cards.php:438` | ~~CSS version `2.0.0` hardcoded in `wp_enqueue_style`; should match plugin version~~ → Fixed in v2.5.1 |
 | B2 | Low | `ipc-styles.css:1` + `ikerbit-product-cards.php:441-445` | Google Fonts loaded twice: via CSS `@import` and via `wp_enqueue_style` |
 | B3 | Low | `ikerbit-product-cards.php:384-386` | Dead code: empty `if` block checking `$atts['marca'] && !$atts['producto']` in `ipc_shortcode_grid` |
 | B4 | Medium | `ikerbit-product-cards.php:139` | Default secret `CAMBIA_ESTE_SECRET` is an insecure fallback — should require explicit configuration or generate a random default |

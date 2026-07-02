@@ -7,6 +7,9 @@ ikerbit-product-cards/
 ├── ikerbit-product-cards.php   ← Plugin entry point (main logic)
 ├── ipc-edit.php                ← Admin edit page for offers
 ├── ipc-styles.css              ← Shared CSS (cards, grids, layouts)
+├── vendor/
+│   └── yahnis-elsts/
+│       └── plugin-update-checker/  ← Update checker library (v5.7)
 ├── templates/
 │   ├── single-ipc_oferta.php       ← Single offer page
 │   ├── taxonomy-ipc_categoria.php  ← Category listing
@@ -27,7 +30,9 @@ ikerbit-product-cards/
 ```mermaid
 flowchart TD
     A[WordPress loads ikerbit-product-cards.php] --> B[ABSPATH guard]
-    B --> C["Hook: init (priority default)"]
+    B --> B2[Include Plugin Update Checker]
+    B2 --> B3[PucFactory: connect to GitHub updates]
+    B3 --> C["Hook: init (priority default)"]
     C --> C1[register_post_type: ipc_oferta]
     C --> C2[register_taxonomy: ipc_categoria]
     C --> C3[register_taxonomy: ipc_marca]
@@ -268,9 +273,10 @@ flowchart LR
 ## Dependencies
 
 - **WordPress core** — minimum version: TODO (not specified)
+- **Plugin Update Checker** (YahnisElsts v5.7) — enables automatic updates from GitHub releases. Bundled in `vendor/`.
 - **hls.js** — CDN-loaded in single template for HLS video playback (`hls.js@1.4.12`)
 - **Google Fonts** — DM Sans + Syne (loaded via `wp_enqueue_style`)
-- **No PHP dependencies** — no Composer packages
+- **No PHP dependencies** — no Composer packages required at runtime
 - **No JS build step** — no npm/webpack
 
 ## Hook Summary

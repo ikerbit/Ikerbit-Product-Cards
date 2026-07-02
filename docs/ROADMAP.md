@@ -2,8 +2,18 @@
 
 ## Implemented
 
-### v2.5.0 (current)
-- Plugin at version 2.5.0 (exact changes: TODO — needs confirmation from developer)
+### v2.5.1 — Plugin Update Checker
+- Integration of Plugin Update Checker (YahnisElsts v5.7) for automatic updates from GitHub releases
+- WordPress admin will show update notifications for new GitHub releases
+
+### v2.5.0 — Taxonomies, GA4, Statistics & Documentation
+- Taxonomies `ipc_marca` and `ipc_producto` for brand/product classification
+- Wildcard support (`*`) in shortcodes for brand and product
+- GA4 integration with toggle and Measurement ID
+- REST DELETE endpoint for offer removal
+- Statistics dashboard with KPIs, top 10, CTR by category/marketplace
+- Detection of offers with visits but no clicks
+- Project documentation (AGENTS.md + docs/)
 
 ### v2.3 — Edit Page, Widget & Counters
 - Edit page (`ipc-edit.php`) — full field editing from WordPress admin

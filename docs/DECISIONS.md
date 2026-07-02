@@ -187,6 +187,22 @@ This log records significant architectural decisions for the Ikerbit Product Car
 
 ---
 
+### AD-018: Plugin Update Checker for Updates
+
+**Decision:** Integrate YahnisElsts Plugin Update Checker library (v5.7) to enable WordPress admin update notifications from GitHub releases.
+
+**Context:** The plugin is hosted on GitHub. Without an update checker, WordPress installations won't know about new versions. The Plugin Update Checker is the de facto standard for self-hosted plugins, polling GitHub releases API.
+
+**Evidence:** `vendor/yahnis-elsts/plugin-update-checker/` bundled in repo. `PucFactory::buildUpdateChecker()` called at plugin initialization with `https://github.com/ikerbit/Ikerbit-Product-Cards/`.
+
+**Consequences:**
+- WordPress admin will show update notifications when new GitHub releases are published.
+- One-click updates from WordPress admin.
+- Library is bundled in `vendor/` (no Composer required at runtime).
+- Release tags must follow the library's version detection logic.
+
+---
+
 ## Pending Decisions (TODO)
 
 | ID | Topic | Status |

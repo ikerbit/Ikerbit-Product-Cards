@@ -22,6 +22,12 @@
 
 ---
 
+---
+
+## v2.5.1 — Plugin Update Checker
+- Integración de Plugin Update Checker (YahnisElsts) para actualizaciones automáticas desde GitHub releases
+- Actualizaciones desde WordPress admin cuando se publiquen nuevas releases en GitHub
+
 ## v2.5.0 — Taxonomías, GA4, estadísticas y documentación
 - Taxonomías `ipc_marca` y `ipc_producto` para clasificar ofertas por marca y producto
 - Soporte de wildcard (`*`) en shortcodes para filtrar por prefijo de marca o producto

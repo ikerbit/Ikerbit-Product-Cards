@@ -136,13 +136,17 @@ Currently, the project has no automated tests. Manual testing focuses on:
 3. Add an entry to `CHANGELOG.md`.
 4. Update affected documentation files in `docs/`.
 5. Test manually on a local WordPress instance.
-6. Commit and push to GitHub:
+6. Commit, tag, and push to GitHub:
 
 ```bash
 git add -A
 git commit -m "vX.Y: description of changes"
+git tag vX.Y
 git push origin main
+git push origin vX.Y
 ```
+
+7. Create a GitHub release from the tag — this triggers the Plugin Update Checker for all installed instances.
 
 ## GitHub Workflow
 
@@ -159,7 +163,7 @@ Semantic versioning is loosely followed:
 - **Minor** (0.x.0): new features, new fields, new endpoints
 - **Patch** (0.0.x): bug fixes
 
-Current version is **2.5.0** (from plugin header: `Version: 2.5.0`). However, there's a known inconsistency — the enqueued CSS uses version `2.0.0` (see BACKLOG.md).
+Current version is **2.5.1**.
 
 ## Environment-Specific Configuration
 
