@@ -2,6 +2,15 @@
 
 ## Implemented
 
+### v2.6.0 — Internationalization: per-country offers
+- New fields: `ipc_country`, `ipc_language`, `ipc_currency`, `ipc_custom_description`
+- Country detection via `navigator.language` + `Accept-Language` + cookie
+- Shortcode `country` attribute with `auto` for automatic visitor country detection
+- Dynamic currency symbols in cards and single template
+- Custom description override per offer
+- Settings: default country and auto-filter toggle
+- Editor: international fields and custom description section
+
 ### v2.5.2 — Update checker validation
 - Version bump to validate Plugin Update Checker functionality
 

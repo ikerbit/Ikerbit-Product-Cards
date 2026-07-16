@@ -15,6 +15,12 @@ $query_args = [
     'paged'          => $paged,
 ];
 
+if (get_option('ipc_auto_filter_country', 0)) {
+    $country = ipc_detect_country();
+    if (!isset($query_args['meta_query'])) $query_args['meta_query'] = ['relation' => 'AND'];
+    $query_args['meta_query'][] = ['key' => 'ipc_country', 'value' => [$country, 'GLOBAL'], 'compare' => 'IN'];
+}
+
 if ($orderby === 'descuento') {
     $query_args['orderby']  = 'meta_value_num';
     $query_args['meta_key'] = 'ipc_descuento';

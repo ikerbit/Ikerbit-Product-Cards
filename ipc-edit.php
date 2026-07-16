@@ -27,7 +27,8 @@ function ipc_edit_save($post_id) {
     $campos_texto = [
         'ipc_precio', 'ipc_precio_old', 'ipc_descuento', 'ipc_url', 'ipc_img',
         'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock',
-        'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click'
+        'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click',
+        'ipc_country', 'ipc_language', 'ipc_currency'
     ];
 
     // Título
@@ -39,7 +40,7 @@ function ipc_edit_save($post_id) {
     foreach ($campos_texto as $campo) {
         if (isset($_POST[$campo])) {
             $key = $campo;
-            $val = $campo === 'ipc_descripcion'
+            $val = ($campo === 'ipc_descripcion' || $campo === 'ipc_custom_description')
                 ? wp_kses_post($_POST[$campo])
                 : sanitize_text_field($_POST[$campo]);
             update_post_meta($post_id, $key, $val);
@@ -140,6 +141,10 @@ function ipc_edit_page() {
     $visitas      = get_post_meta($post_id, 'ipc_visitas', true);
     $clicks       = get_post_meta($post_id, 'ipc_clicks', true);
     $ultimo_click = get_post_meta($post_id, 'ipc_ultimo_click', true);
+    $country      = get_post_meta($post_id, 'ipc_country', true);
+    $language     = get_post_meta($post_id, 'ipc_language', true);
+    $currency     = get_post_meta($post_id, 'ipc_currency', true);
+    $custom_desc  = get_post_meta($post_id, 'ipc_custom_description', true);
     $imagenes_raw = get_post_meta($post_id, 'ipc_imagenes', true);
     $imagenes_arr = [];
     if ($imagenes_raw) {
@@ -211,6 +216,16 @@ function ipc_edit_page() {
                             <?php ipc_field('Marca (ej: Samsung)', 'ipc_marca', $marca_val); ?>
                             <?php ipc_field('Producto (ej: Samsung Galaxy S24)', 'ipc_producto', $prod_val); ?>
                             <?php ipc_field('Stock (1=sí, 0=no)', 'ipc_stock', $stock); ?>
+                        </div>
+                    </div>
+
+                    <div class="postbox">
+                        <div class="postbox-header"><h2 class="hndle">Internacionalización</h2></div>
+                        <div class="inside" style="display:flex;flex-direction:column;gap:12px">
+                            <?php ipc_field('País (ES, MX, DE, GLOBAL...)', 'ipc_country', $country); ?>
+                            <?php ipc_field('Idioma (es, de, en...)', 'ipc_language', $language); ?>
+                            <?php ipc_field('Moneda (EUR, MXN, USD...)', 'ipc_currency', $currency); ?>
+                            <div style="font-size:11px;color:#999;margin-top:-4px">Se guardan en mayúsculas. GLOBAL = oferta para todos los países.</div>
                         </div>
                     </div>
 
@@ -288,6 +303,14 @@ function ipc_edit_page() {
                         <div class="inside">
                             <textarea name="ipc_descripcion" rows="8" style="width:100%"><?php echo esc_textarea($descripcion); ?></textarea>
                             <p class="description">Texto enriquecido para SEO. Se muestra en la página de producto.</p>
+                        </div>
+                    </div>
+
+                    <div class="postbox">
+                        <div class="postbox-header"><h2 class="hndle">Descripción personalizada</h2></div>
+                        <div class="inside">
+                            <textarea name="ipc_custom_description" rows="6" style="width:100%"><?php echo esc_textarea($custom_desc); ?></textarea>
+                            <p class="description">Si se rellena, sustituye a la descripción original en las cards y listados.</p>
                         </div>
                     </div>
 

@@ -10,7 +10,7 @@ $term_name   = $term ? ucfirst($term->name) : 'Ofertas';
 $term_desc   = $term ? term_description($term) : '';
 $paged       = get_query_var('paged') ?: 1;
 
-$query = new WP_Query([
+$base_args = [
     'post_type'      => 'ipc_oferta',
     'post_status'    => 'publish',
     'posts_per_page' => 24,
@@ -20,7 +20,16 @@ $query = new WP_Query([
         'field'    => 'slug',
         'terms'    => $term ? $term->slug : '',
     ]],
-]);
+];
+
+if (get_option('ipc_auto_filter_country', 0)) {
+    $country = ipc_detect_country();
+    $base_args['meta_query'] = [
+        ['key' => 'ipc_country', 'value' => [$country, 'GLOBAL'], 'compare' => 'IN'],
+    ];
+}
+
+$query = new WP_Query($base_args);
 ?>
 
 <style>
@@ -87,17 +96,7 @@ $query = new WP_Query([
         $order_args = ['orderby' => 'meta_value_num', 'meta_key' => 'ipc_precio', 'order' => 'DESC'];
     }
     if ($order_args) {
-        $query = new WP_Query(array_merge([
-            'post_type'      => 'ipc_oferta',
-            'post_status'    => 'publish',
-            'posts_per_page' => 24,
-            'paged'          => $paged,
-            'tax_query'      => [[
-                'taxonomy' => 'ipc_categoria',
-                'field'    => 'slug',
-                'terms'    => $term ? $term->slug : '',
-            ]],
-        ], $order_args));
+        $query = new WP_Query(array_merge($base_args, $order_args));
     }
     ?>
 

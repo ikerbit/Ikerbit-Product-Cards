@@ -18,9 +18,11 @@ while (have_posts()) : the_post();
     $rating_count = get_post_meta($post_id, 'ipc_rating_count', true);
     $badge        = get_post_meta($post_id, 'ipc_badge', true);
     $fecha        = get_post_meta($post_id, 'ipc_fecha', true);
-    $descripcion  = get_post_meta($post_id, 'ipc_descripcion', true);
+    $descripcion_raw = get_post_meta($post_id, 'ipc_custom_description', true);
+    $descripcion  = $descripcion_raw ?: get_post_meta($post_id, 'ipc_descripcion', true);
     $imagenes     = json_decode(get_post_meta($post_id, 'ipc_imagenes', true) ?: '[]', true);
     $video_raw    = get_post_meta($post_id, 'ipc_video', true);
+    $currency     = get_post_meta($post_id, 'ipc_currency', true) ?: 'EUR';
     $videos       = [];
     if ($video_raw) {
         $decoded = json_decode($video_raw, true);
@@ -41,6 +43,7 @@ while (have_posts()) : the_post();
     $btn_label  = $btn_labels[$marketplace] ?? 'Ver oferta';
     $mp_colors  = ['amazon' => '#FF9900', 'ebay' => '#0064d2', 'aliexpress' => '#e43225', 'pccomponentes' => '#ff6b00', 'tienda' => '#111'];
     $btn_color  = $mp_colors[$marketplace] ?? '#111';
+    $currency_sym = ipc_currency_symbol($currency);
 ?>
 
 <script type="application/ld+json">
@@ -146,8 +149,8 @@ while (have_posts()) : the_post();
             <?php endif; ?>
 
             <div class="ipc-single__price-wrap">
-                <span class="ipc-single__price"><?php echo esc_html($precio); ?>€</span>
-                <?php if ($precio_old): ?><span class="ipc-single__price-old"><?php echo esc_html($precio_old); ?>€</span><?php endif; ?>
+                <span class="ipc-single__price"><?php echo esc_html($precio); ?><?php echo $currency_sym; ?></span>
+                <?php if ($precio_old): ?><span class="ipc-single__price-old"><?php echo esc_html($precio_old); ?><?php echo $currency_sym; ?></span><?php endif; ?>
                 <?php if ($precio && $precio_old && floatval($precio_old) > floatval($precio)):
                     $ahorro = number_format(floatval($precio_old) - floatval($precio), 2); ?>
                     <span class="ipc-single__saving">Ahorras <?php echo $ahorro; ?>€</span>

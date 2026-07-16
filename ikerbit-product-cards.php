@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.5.2
+ * Version: 2.6.0
  * Author: Ikerbit
  */
 
@@ -80,7 +80,7 @@ add_action('init', function() {
 // 2. REGISTRAR META FIELDS EN REST API
 // ─────────────────────────────────────────
 add_action('rest_api_init', function() {
-    $fields = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_imagenes', 'ipc_video', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click'];
+    $fields = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_imagenes', 'ipc_video', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click', 'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_custom_description'];
     foreach ($fields as $field) {
         register_post_meta('ipc_oferta', $field, [
             'show_in_rest'  => true,
@@ -158,6 +158,18 @@ function ipc_guardar_meta($post_id, $p) {
     if (isset($p['descripcion'])) {
         update_post_meta($post_id, 'ipc_descripcion', wp_kses_post($p['descripcion']));
     }
+    if (isset($p['custom_description'])) {
+        update_post_meta($post_id, 'ipc_custom_description', wp_kses_post($p['custom_description']));
+    }
+    if (isset($p['country'])) {
+        update_post_meta($post_id, 'ipc_country', strtoupper(sanitize_text_field($p['country'])));
+    }
+    if (isset($p['language'])) {
+        update_post_meta($post_id, 'ipc_language', strtolower(sanitize_text_field($p['language'])));
+    }
+    if (isset($p['currency'])) {
+        update_post_meta($post_id, 'ipc_currency', strtoupper(sanitize_text_field($p['currency'])));
+    }
     if (isset($p['imagenes'])) {
         $imgs = is_array($p['imagenes']) ? $p['imagenes'] : json_decode($p['imagenes'], true);
         update_post_meta($post_id, 'ipc_imagenes', json_encode(array_values((array)$imgs)));
@@ -224,6 +236,24 @@ function ipc_actualizar_oferta($request) {
 add_shortcode('oferta', 'ipc_shortcode_single');
 add_shortcode('ofertas', 'ipc_shortcode_grid');
 
+function ipc_currency_symbol($code) {
+    $map = ['EUR' => '€', 'USD' => '$', 'MXN' => 'MX$', 'GBP' => '£', 'ARS' => 'AR$', 'CLP' => 'CL$', 'COP' => 'CO$', 'PEN' => 'S/', 'BRL' => 'R$', 'UYU' => '$U', 'CRC' => '₡', 'DOP' => 'RD$', 'GTQ' => 'Q', 'HNL' => 'L', 'NIO' => 'C$', 'PAB' => 'B/', 'PYG' => '₲', 'BOB' => 'Bs', 'VES' => 'Bs.S'];
+    return $map[strtoupper($code)] ?? '$';
+}
+
+function ipc_detect_country() {
+    if (!empty($_COOKIE['ipc_country']) && preg_match('/^[A-Z]{2}$/', $_COOKIE['ipc_country'])) {
+        return strtoupper($_COOKIE['ipc_country']);
+    }
+    if (!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+        $parts = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+        if (preg_match('/[_-]([A-Za-z]{2})$/', trim($parts[0]), $m)) {
+            return strtoupper($m[1]);
+        }
+    }
+    return strtoupper(get_option('ipc_default_country', 'ES'));
+}
+
 function ipc_get_meta($post_id) {
     return [
         'precio'       => get_post_meta($post_id, 'ipc_precio', true),
@@ -238,8 +268,12 @@ function ipc_get_meta($post_id) {
         'badge'        => get_post_meta($post_id, 'ipc_badge', true),
         'fecha'        => get_post_meta($post_id, 'ipc_fecha', true),
         'descripcion'  => get_post_meta($post_id, 'ipc_descripcion', true),
+        'custom_description' => get_post_meta($post_id, 'ipc_custom_description', true),
         'imagenes'     => json_decode(get_post_meta($post_id, 'ipc_imagenes', true) ?: '[]', true),
         'video'        => get_post_meta($post_id, 'ipc_video', true),
+        'country'      => get_post_meta($post_id, 'ipc_country', true),
+        'language'     => get_post_meta($post_id, 'ipc_language', true),
+        'currency'     => get_post_meta($post_id, 'ipc_currency', true),
     ];
 }
 
@@ -259,6 +293,7 @@ function ipc_render_card($post, $size = 'normal') {
     $stock = $m['stock'] !== '0' ? true : false;
     $descuento = esc_html($m['descuento']);
     $badge = esc_html($m['badge']);
+    $currency_sym = esc_html(ipc_currency_symbol($m['currency'] ?: 'EUR'));
 
     $stars = '';
     for ($i = 1; $i <= 5; $i++) {
@@ -291,8 +326,8 @@ function ipc_render_card($post, $size = 'normal') {
             </div>
             <?php endif; ?>
             <div class="ipc-card__price-wrap">
-                <span class="ipc-price"><?php echo $precio; ?>€</span>
-                <?php if ($precio_old): ?><span class="ipc-price-old"><?php echo $precio_old; ?>€</span><?php endif; ?>
+                <span class="ipc-price"><?php echo $precio; ?><?php echo $currency_sym; ?></span>
+                <?php if ($precio_old): ?><span class="ipc-price-old"><?php echo $precio_old; ?><?php echo $currency_sym; ?></span><?php endif; ?>
             </div>
             <?php if ($stock): ?><div class="ipc-stock">● En stock</div><?php endif; ?>
             <a href="<?php echo $url; ?>" class="ipc-btn ipc-btn--<?php echo esc_attr($marketplace); ?>" target="_blank" rel="sponsored nofollow noopener" style="position:relative;z-index:2" data-post-id="<?php echo $post->ID; ?>">
@@ -324,6 +359,7 @@ function ipc_shortcode_grid($atts) {
         'orderby'      => 'date',
         'order'        => 'DESC',
         'condescuento' => '',
+        'country'      => '',
     ], $atts);
 
     $args = [
@@ -404,6 +440,25 @@ function ipc_shortcode_grid($atts) {
         ];
     }
 
+    // Filtro por país
+    $auto_filter = get_option('ipc_auto_filter_country', 0);
+    $country_attr = $atts['country'];
+    if ($country_attr === 'auto' || ($auto_filter && empty($country_attr))) {
+        $detected = ipc_detect_country();
+        $meta_query[] = [
+            'key'     => 'ipc_country',
+            'value'   => [$detected, 'GLOBAL'],
+            'compare' => 'IN',
+        ];
+    } elseif (!empty($country_attr) && $country_attr !== 'auto') {
+        $countries = array_map('trim', explode(',', strtoupper($country_attr)));
+        $meta_query[] = [
+            'key'     => 'ipc_country',
+            'value'   => $countries,
+            'compare' => 'IN',
+        ];
+    }
+
     if ($atts['condescuento'] === 'si') {
         $meta_query[] = [
             'key'     => 'ipc_descuento',
@@ -443,7 +498,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.5.2'
+        '2.6.0'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -507,6 +562,8 @@ function ipc_settings_page() {
         update_option('ipc_home_enabled', isset($_POST['ipc_home_enabled']) ? 1 : 0);
         update_option('ipc_ga4_id', sanitize_text_field($_POST['ipc_ga4_id'] ?? ''));
         update_option('ipc_ga4_enabled', isset($_POST['ipc_ga4_enabled']) ? 1 : 0);
+        update_option('ipc_default_country', strtoupper(sanitize_text_field($_POST['ipc_default_country'] ?? 'ES')));
+        update_option('ipc_auto_filter_country', isset($_POST['ipc_auto_filter_country']) ? 1 : 0);
 
         // Si se activa como portada, configurar WordPress automáticamente
         if (isset($_POST['ipc_home_enabled'])) {
@@ -529,9 +586,11 @@ function ipc_settings_page() {
     $home_enabled  = get_option('ipc_home_enabled', 0);
     $ga4_id        = get_option('ipc_ga4_id', '');
     $ga4_enabled   = get_option('ipc_ga4_enabled', 0);
+    $default_country = get_option('ipc_default_country', 'ES');
+    $auto_filter     = get_option('ipc_auto_filter_country', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.5.2</h1>
+        <h1>Ikerbit Product Cards v2.6.0</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -556,7 +615,22 @@ function ipc_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th>Usar como página de inicio</th>
+                    <th>País por defecto</th>
+                    <td>
+                        <input type="text" name="ipc_default_country" value="<?php echo esc_attr($default_country); ?>" maxlength="6" style="width:80px;text-transform:uppercase">
+                        <p class="description">Código ISO del país por defecto (ej: ES, MX, AR). Se usa como fallback si no se detecta el país del visitante.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Filtro automático por país</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="ipc_auto_filter_country" value="1" <?php checked($auto_filter, 1); ?>>
+                            Filtrar ofertas automáticamente según el país del visitante
+                        </label>
+                        <p class="description">Si se activa, los shortcodes sin atributo <code>country</code> filtrarán automáticamente. Usa <code>country="auto"</code> para filtrar en shortcodes individuales.</p>
+                    </td>
+                </tr>
                     <td>
                         <label>
                             <input type="checkbox" name="ipc_home_enabled" value="1" <?php checked($home_enabled, 1); ?>>
@@ -585,7 +659,15 @@ function ipc_settings_page() {
                 <tr><td><code>[ofertas orderby="clicks" limite="6" layout="grid"]</code></td><td>Más clicadas primero</td></tr>
                 <tr><td><code>[ofertas orderby="visitas" limite="6" layout="grid"]</code></td><td>Más visitadas primero</td></tr>
                 <tr><td><code>[ofertas categoria="ram" orderby="descuento" condescuento="si" limite="4" layout="grid"]</code></td><td>Combinando filtros</td></tr>
-                <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">💡 Sugerencias para posts temáticos (evergreen)</td></tr>
+                <tr><td><code>[ofertas country="ES" limite="6" layout="grid"]</code></td><td>Filtrado por país (ES, MX, DE...)</td></tr>
+                <tr><td><code>[ofertas country="MX,ES" limite="6" layout="grid"]</code></td><td>Varios países separados por coma</td></tr>
+                <tr><td><code>[ofertas country="auto" limite="6" layout="grid"]</code></td><td>Detecta y filtra por país del visitante (incluye ofertas globales)</td></tr>
+                <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">🌍 Filtros internacionales</td></tr>
+                <tr><td><code>[ofertas category="ram" country="auto" limite="6" layout="grid"]</code></td><td>Combina categoría con detección automática de país</td></tr>
+                <tr><td><code>[ofertas marketplace="amazon" country="auto" limite="4" layout="horizontal"]</code></td><td>Marketplace + país auto</td></tr>
+                <tr><td><code>[ofertas producto="samsung-galaxy-s24" country="auto"]</code></td><td>Producto + país (ideal para reviews multi-marketplace)</td></tr>
+                <tr><td><code>[ofertas country="auto" condescuento="si" limite="6" layout="grid"]</code></td><td>Ofertas con descuento del país del visitante</td></tr>
+                <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">💡 Combinaciones con país</td></tr>
                 <tr><td><code>[ofertas marca="samsung" limite="6" layout="grid"]</code></td><td>Todas las ofertas de una marca</td></tr>
                 <tr><td><code>[ofertas producto="samsung-galaxy-s24" limite="4" layout="grid"]</code></td><td>Ofertas de un producto concreto</td></tr>
                 <tr><td><code>[ofertas marca="apple" categoria="smartphones" limite="6" layout="grid"]</code></td><td>Marca + categoría combinadas</td></tr>
@@ -617,6 +699,10 @@ function ipc_settings_page() {
             'video'        => ['https://www.youtube.com/watch?v=XXXXX'],
             'marca'        => 'Samsung',
             'producto'     => 'Samsung Galaxy S24',
+            'country'      => 'ES',
+            'language'     => 'es',
+            'currency'     => 'EUR',
+            'custom_description' => 'Descripción personalizada que sustituye a la original en la card.'
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); ?></pre>
     </div>
     <?php
@@ -1001,7 +1087,28 @@ add_action('wp_footer', function() {
 });
 
 // ─────────────────────────────────────────
-// 10. WIDGET DE OFERTAS
+// 10. COOKIE DE PAÍS — JS CLIENTE
+// ─────────────────────────────────────────
+add_action('wp_footer', function() {
+    if (is_admin()) return;
+    ?>
+    <script>
+    (function() {
+        if (!document.cookie.match(/ipc_country=/)) {
+            var lang = navigator.language || navigator.userLanguage || '';
+            var parts = lang.split('-');
+            var country = parts.length > 1 ? parts[1].toUpperCase() : '';
+            if (country && /^[A-Z]{2}$/.test(country)) {
+                document.cookie = 'ipc_country=' + country + ';path=/;max-age=86400;samesite=lax';
+            }
+        }
+    })();
+    </script>
+    <?php
+}, 1);
+
+// ─────────────────────────────────────────
+// 11. WIDGET DE OFERTAS
 // ─────────────────────────────────────────
 add_action('widgets_init', function() {
     register_widget('IPC_Widget_Ofertas');

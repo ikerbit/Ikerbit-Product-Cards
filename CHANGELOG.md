@@ -26,6 +26,22 @@
 
 ---
 
+---
+
+## v2.6.0 — Internacionalización: ofertas por país
+- Campos nuevos `ipc_country`, `ipc_language`, `ipc_currency`, `ipc_custom_description`
+- Detección de país del visitante vía `navigator.language` + `Accept-Language` + cookie (sin dependencias externas)
+- Nuevo atributo `country` en shortcode `[ofertas]` — filtra ofertas por código de país (ES, MX, DE...)
+- `country="auto"` detecta automáticamente el país del visitante y filtra
+- `country="GLOBAL"` para ofertas válidas en todos los países (AliExpress)
+- Moneda dinámica: el símbolo de moneda (€, $, MX$...) se muestra según `ipc_currency`
+- Campo `ipc_custom_description`: si está relleno, sustituye a `ipc_descripcion` en cards
+- Nuevas opciones en Ajustes: país por defecto y toggle de filtro automático
+- JS de cookie de país en todas las páginas públicas (priority 1 en `wp_footer`)
+- Editor: nueva sección "Internacionalización" con campos país, idioma y moneda
+- Editor: nueva sección "Descripción personalizada"
+- Shortcodes de ejemplo y JSON body actualizados en Ajustes
+
 ## v2.5.2 — Prueba de update checker
 - Bump de versión para validar el funcionamiento del Plugin Update Checker
 
