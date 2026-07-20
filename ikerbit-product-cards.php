@@ -1189,7 +1189,7 @@ add_action('wp_footer', function() {
             $t = get_the_terms(get_the_ID(), 'ipc_categoria');
             echo json_encode($t ? $t[0]->slug : '');
         ?>;
-        fetch(restUrl + '/visita/' + postId + '?country=' + ipcCountry, { method: 'POST' }).catch(function(){});
+        fetch(restUrl + '/visita/' + postId + '?country=' + ipcCountry, { method: 'POST', keepalive: true }).catch(function(){});
         sendGA4('affiliate_visit', { post_id: postId, post_title: postTitle, category: postCat });
         <?php endif; ?>
 
@@ -1207,7 +1207,7 @@ add_action('wp_footer', function() {
                 }
             }
             if (!pid) return;
-            fetch(restUrl + '/click/' + pid + '?country=' + ipcCountry, { method: 'POST' }).catch(function(){});
+            fetch(restUrl + '/click/' + pid + '?country=' + ipcCountry, { method: 'POST', keepalive: true }).catch(function(){});
             // Evento GA4
             var card = btn.closest('[data-post-id]');
             var title = card ? (card.querySelector('.ipc-card__title, .ipc-widget__name') || {}).innerText || '' : '';
@@ -1238,7 +1238,7 @@ add_action('wp_footer', function() {
         if (!document.cookie.match(/ipc_visited=/)) {
             document.cookie = 'ipc_visited=1;path=/;max-age=3600;samesite=lax';
             var c = (document.cookie.match(/ipc_country=([A-Z]{2})/) || [])[1] || '';
-            if (c) fetch(restUrl + '/visitor/' + c, { method: 'POST' }).catch(function(){});
+            if (c) fetch(restUrl + '/visitor/' + c, { method: 'POST', keepalive: true }).catch(function(){});
         }
     })();
     </script>
