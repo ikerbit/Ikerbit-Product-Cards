@@ -28,7 +28,7 @@ function ipc_edit_save($post_id) {
         'ipc_precio', 'ipc_precio_old', 'ipc_descuento', 'ipc_url', 'ipc_img',
         'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock',
         'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click',
-        'ipc_country', 'ipc_language', 'ipc_currency'
+        'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_product_code'
     ];
 
     // Título
@@ -145,6 +145,7 @@ function ipc_edit_page() {
     $language     = get_post_meta($post_id, 'ipc_language', true);
     $currency     = get_post_meta($post_id, 'ipc_currency', true);
     $custom_desc  = get_post_meta($post_id, 'ipc_custom_description', true);
+    $prod_code    = get_post_meta($post_id, 'ipc_product_code', true);
     $imagenes_raw = get_post_meta($post_id, 'ipc_imagenes', true);
     $imagenes_arr = [];
     if ($imagenes_raw) {
@@ -192,6 +193,7 @@ function ipc_edit_page() {
                         <div class="postbox-header"><h2 class="hndle">Información principal</h2></div>
                         <div class="inside" style="display:flex;flex-direction:column;gap:12px">
                             <?php ipc_field('Título', 'post_title', $titulo); ?>
+                            <?php ipc_field('Código producto (ASIN, ID...)', 'ipc_product_code', $prod_code); ?>
                             <?php ipc_field('Precio actual (€)', 'ipc_precio', $precio, 'number'); ?>
                             <?php ipc_field('Precio anterior (€)', 'ipc_precio_old', $precio_old, 'number'); ?>
                             <?php ipc_field('Descuento (%)', 'ipc_descuento', $descuento, 'number'); ?>

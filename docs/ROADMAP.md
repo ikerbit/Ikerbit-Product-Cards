@@ -2,6 +2,11 @@
 
 ## Implemented
 
+### v2.7.0 — Product code & upsert
+- New field `ipc_product_code` for unique product identification (ASIN, etc.)
+- Upsert: POST to create endpoint auto-updates if matching product_code + marketplace + country exists
+- `product_code` shortcode attribute
+
 ### v2.6.0 — Internationalization: per-country offers
 - New fields: `ipc_country`, `ipc_language`, `ipc_currency`, `ipc_custom_description`
 - Country detection via `navigator.language` + `Accept-Language` + cookie

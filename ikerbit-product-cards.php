@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.6.2
+ * Version: 2.7.0
  * Author: Ikerbit
  */
 
@@ -80,7 +80,7 @@ add_action('init', function() {
 // 2. REGISTRAR META FIELDS EN REST API
 // ─────────────────────────────────────────
 add_action('rest_api_init', function() {
-    $fields = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_imagenes', 'ipc_video', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click', 'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_custom_description', 'ipc_visitas_paises', 'ipc_clicks_paises'];
+    $fields = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_imagenes', 'ipc_video', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click', 'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_custom_description', 'ipc_visitas_paises', 'ipc_clicks_paises', 'ipc_product_code'];
     foreach ($fields as $field) {
         register_post_meta('ipc_oferta', $field, [
             'show_in_rest'  => true,
@@ -184,7 +184,7 @@ function ipc_sanitize_price($value) {
 }
 
 function ipc_guardar_meta($post_id, $p) {
-    $campos = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_video'];
+    $campos = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_video', 'ipc_product_code'];
     foreach ($campos as $campo) {
         $key = str_replace('ipc_', '', $campo);
         if (isset($p[$key])) {
@@ -234,6 +234,30 @@ function ipc_guardar_meta($post_id, $p) {
 function ipc_crear_oferta($request) {
     $p = $request->get_json_params();
     if (empty($p['titulo'])) return new WP_Error('missing', 'titulo requerido', ['status' => 400]);
+
+    $product_code = sanitize_text_field($p['product_code'] ?? '');
+    $marketplace  = sanitize_text_field($p['marketplace'] ?? '');
+    $country      = strtoupper(sanitize_text_field($p['country'] ?? ''));
+
+    if ($product_code && $marketplace && $country) {
+        $existing = get_posts([
+            'post_type'      => 'ipc_oferta',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                ['key' => 'ipc_product_code', 'value' => $product_code],
+                ['key' => 'ipc_marketplace', 'value' => $marketplace],
+                ['key' => 'ipc_country', 'value' => $country],
+            ],
+        ]);
+        if (!empty($existing)) {
+            $post_id = $existing[0];
+            wp_update_post(['ID' => $post_id, 'post_title' => sanitize_text_field($p['titulo'])]);
+            ipc_guardar_meta($post_id, $p);
+            return rest_ensure_response(['success' => true, 'post_id' => $post_id, 'updated' => true, 'url' => get_permalink($post_id)]);
+        }
+    }
 
     $post_id = wp_insert_post([
         'post_title'  => sanitize_text_field($p['titulo']),
@@ -314,6 +338,7 @@ function ipc_get_meta($post_id) {
         'country'      => get_post_meta($post_id, 'ipc_country', true),
         'language'     => get_post_meta($post_id, 'ipc_language', true),
         'currency'     => get_post_meta($post_id, 'ipc_currency', true),
+        'product_code' => get_post_meta($post_id, 'ipc_product_code', true),
     ];
 }
 
@@ -400,6 +425,7 @@ function ipc_shortcode_grid($atts) {
         'order'        => 'DESC',
         'condescuento' => '',
         'country'      => '',
+        'product_code' => '',
     ], $atts);
 
     $args = [
@@ -499,6 +525,14 @@ function ipc_shortcode_grid($atts) {
         ];
     }
 
+    // Filtro por código de producto (ASIN, product ID...)
+    if ($atts['product_code']) {
+        $meta_query[] = [
+            'key'     => 'ipc_product_code',
+            'value'   => sanitize_text_field($atts['product_code']),
+        ];
+    }
+
     if ($atts['condescuento'] === 'si') {
         $meta_query[] = [
             'key'     => 'ipc_descuento',
@@ -538,7 +572,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.6.2'
+        '2.7.0'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -630,7 +664,7 @@ function ipc_settings_page() {
     $auto_filter     = get_option('ipc_auto_filter_country', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.6.2</h1>
+        <h1>Ikerbit Product Cards v2.7.0</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -700,7 +734,8 @@ function ipc_settings_page() {
                 <tr><td><code>[ofertas orderby="visitas" limite="6" layout="grid"]</code></td><td>Más visitadas primero</td></tr>
                 <tr><td><code>[ofertas categoria="ram" orderby="descuento" condescuento="si" limite="4" layout="grid"]</code></td><td>Combinando filtros</td></tr>
                 <tr><td><code>[ofertas country="ES" limite="6" layout="grid"]</code></td><td>Filtrado por país (ES, MX, DE...)</td></tr>
-                <tr><td><code>[ofertas country="MX,ES" limite="6" layout="grid"]</code></td><td>Varios países separados por coma</td></tr>
+                <tr><td><code>[ofertas product_code="B0XXX" limite="6" layout="grid"]</code></td><td>Filtra por código de producto</td></tr>
+                <tr><td><code>[ofertas product_code="B0XXX" country="auto"]</code></td><td>Producto concreto + país automático</td></tr>
                 <tr><td><code>[ofertas country="auto" limite="6" layout="grid"]</code></td><td>Detecta y filtra por país del visitante (incluye ofertas globales)</td></tr>
                 <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">🌍 Filtros internacionales</td></tr>
                 <tr><td><code>[ofertas category="ram" country="auto" limite="6" layout="grid"]</code></td><td>Combina categoría con detección automática de país</td></tr>
@@ -721,6 +756,7 @@ function ipc_settings_page() {
         <p><strong>Header requerido:</strong> <code>X-IPC-Secret: tu-secret</code></p>
         <h3>Body JSON de ejemplo:</h3>
         <pre style="background:#f4f4f4;padding:12px;border-radius:6px;"><?php echo esc_html(json_encode([
+            'product_code' => 'B0F2295TXB',
             'titulo'       => 'Kingston FURY Beast DDR5 32GB',
             'precio'       => '89.99',
             'precio_old'   => '119.99',

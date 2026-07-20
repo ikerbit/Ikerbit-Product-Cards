@@ -32,6 +32,16 @@
 
 ---
 
+---
+
+## v2.7.0 — Upsert por código de producto
+- Nuevo campo `ipc_product_code` — identificador único del producto en su marketplace (ASIN, etc.)
+- Upsert automático: si n8n envía `product_code` + `marketplace` + `country` y ya existe, actualiza en vez de duplicar
+- Precios, títulos y demás campos se actualizan; visitas y clicks se conservan
+- Nuevo atributo `product_code` en shortcode `[ofertas]`
+- Campo visible en el editor de ofertas (Información principal)
+- `product_code` como primer campo en el Body JSON de ejemplo en Ajustes
+
 ## v2.6.2 — Tracking de país del visitante
 - Nuevo endpoint `POST /ipc/v1/visitor/{country}` para tracking global de visitantes por país
 - Nuevos meta fields `ipc_visitas_paises` y `ipc_clicks_paises` (JSON) — desglose por país del visitante
