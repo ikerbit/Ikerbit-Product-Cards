@@ -852,6 +852,9 @@ function ipc_ofertas_page() {
     } elseif ($orderby === 'country') {
         $query_args['orderby']  = 'meta_value';
         $query_args['meta_key'] = 'ipc_country';
+    } elseif ($orderby === 'product_code') {
+        $query_args['orderby']  = 'meta_value';
+        $query_args['meta_key'] = 'ipc_product_code';
     } else {
         $query_args['orderby'] = 'date';
     }
@@ -879,6 +882,7 @@ function ipc_ofertas_page() {
                     <th><a href="<?php echo $sort_url('precio'); ?>">Precio<?php echo $sort_arrow('precio'); ?></a></th>
                     <th><a href="<?php echo $sort_url('descuento'); ?>">Descuento<?php echo $sort_arrow('descuento'); ?></a></th>
                     <th><a href="<?php echo $sort_url('marketplace'); ?>">Marketplace<?php echo $sort_arrow('marketplace'); ?></a></th>
+                    <th><a href="<?php echo $sort_url('product_code'); ?>">Código<?php echo $sort_arrow('product_code'); ?></a></th>
                     <th><a href="<?php echo $sort_url('country'); ?>">País<?php echo $sort_arrow('country'); ?></a></th>
                     <th><a href="<?php echo $sort_url('categoria'); ?>">Categoría<?php echo $sort_arrow('categoria'); ?></a></th>
                     <th><a href="<?php echo $sort_url('marca'); ?>">Marca<?php echo $sort_arrow('marca'); ?></a></th>
@@ -897,6 +901,7 @@ function ipc_ofertas_page() {
                 $precio     = get_post_meta($id, 'ipc_precio', true);
                 $descuento  = get_post_meta($id, 'ipc_descuento', true);
                 $marketplace= get_post_meta($id, 'ipc_marketplace', true);
+                $prod_code   = get_post_meta($id, 'ipc_product_code', true);
                 $country    = get_post_meta($id, 'ipc_country', true);
                 $fecha      = get_post_meta($id, 'ipc_fecha', true);
                 $visitas    = intval(get_post_meta($id, 'ipc_visitas', true));
@@ -916,6 +921,7 @@ function ipc_ofertas_page() {
                     <td><?php echo $precio ? esc_html($precio) . esc_html($currency_sym) : '—'; ?></td>
                     <td><?php echo $descuento ? '<span style="background:#ff3b30;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px">-' . esc_html($descuento) . '%</span>' : '—'; ?></td>
                     <td><?php echo esc_html(ucfirst($marketplace ?: '—')); ?></td>
+                    <td><code style="font-size:11px"><?php echo esc_html($prod_code ?: '—'); ?></code></td>
                     <td><code><?php echo esc_html($country ?: '—'); ?></code></td>
                     <td><code><?php echo esc_html($cat); ?></code></td>
                     <td><?php echo $marca_val; ?></td>
@@ -931,7 +937,7 @@ function ipc_ofertas_page() {
                 </tr>
             <?php endwhile; wp_reset_postdata();
             else: ?>
-                <tr><td colspan="14">No hay ofertas todavía.</td></tr>
+                <tr><td colspan="15">No hay ofertas todavía.</td></tr>
             <?php endif; ?>
             </tbody>
         </table>
