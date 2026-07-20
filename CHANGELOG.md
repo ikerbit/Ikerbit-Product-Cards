@@ -30,6 +30,16 @@
 
 ---
 
+---
+
+## v2.6.2 — Tracking de país del visitante
+- Nuevo endpoint `POST /ipc/v1/visitor/{country}` para tracking global de visitantes por país
+- Nuevos meta fields `ipc_visitas_paises` y `ipc_clicks_paises` (JSON) — desglose por país del visitante
+- El JS de tracking envía el país del visitante (desde la cookie) con cada visita y click
+- Nueva sección "Visitantes por país" en el dashboard de estadísticas
+- Países sin ofertas marcados en amarillo — para identificar mercados sin cobertura
+- Throttle de 1 hora para el ping global (evita duplicados por refresco)
+
 ## v2.6.1 — Saneamiento de precios y país en estadísticas
 - `ipc_sanitize_price()`: normaliza precios eliminando símbolos (€, $) y unificando comas a puntos al recibir desde n8n
 - Columna "País" en "Todas las Ofertas" con ordenación

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.6.1
+ * Version: 2.6.2
  * Author: Ikerbit
  */
 
@@ -80,7 +80,7 @@ add_action('init', function() {
 // 2. REGISTRAR META FIELDS EN REST API
 // ─────────────────────────────────────────
 add_action('rest_api_init', function() {
-    $fields = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_imagenes', 'ipc_video', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click', 'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_custom_description'];
+    $fields = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_imagenes', 'ipc_video', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click', 'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_custom_description', 'ipc_visitas_paises', 'ipc_clicks_paises'];
     foreach ($fields as $field) {
         register_post_meta('ipc_oferta', $field, [
             'show_in_rest'  => true,
@@ -115,6 +115,11 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_registrar_click',
         'permission_callback' => '__return_true',
     ]);
+    register_rest_route('ipc/v1', '/visitor/(?P<country>[A-Z]{2})', [
+        'methods'             => 'POST',
+        'callback'            => 'ipc_registrar_visitor',
+        'permission_callback' => '__return_true',
+    ]);
     register_rest_route('ipc/v1', '/oferta/(?P<id>\d+)', [
         'methods'             => 'DELETE',
         'callback'            => 'ipc_eliminar_oferta',
@@ -130,6 +135,14 @@ function ipc_registrar_visita($request) {
     if (!get_post($post_id)) return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
     $visitas = intval(get_post_meta($post_id, 'ipc_visitas', true));
     update_post_meta($post_id, 'ipc_visitas', $visitas + 1);
+
+    $country = strtoupper(sanitize_text_field($request->get_param('country') ?: ''));
+    if ($country && preg_match('/^[A-Z]{2}$/', $country)) {
+        $paises = json_decode(get_post_meta($post_id, 'ipc_visitas_paises', true) ?: '{}', true);
+        $paises[$country] = ($paises[$country] ?? 0) + 1;
+        update_post_meta($post_id, 'ipc_visitas_paises', json_encode($paises));
+    }
+
     return rest_ensure_response(['success' => true, 'visitas' => $visitas + 1]);
 }
 
@@ -139,7 +152,23 @@ function ipc_registrar_click($request) {
     $clicks = intval(get_post_meta($post_id, 'ipc_clicks', true));
     update_post_meta($post_id, 'ipc_clicks', $clicks + 1);
     update_post_meta($post_id, 'ipc_ultimo_click', current_time('Y-m-d H:i:s'));
+
+    $country = strtoupper(sanitize_text_field($request->get_param('country') ?: ''));
+    if ($country && preg_match('/^[A-Z]{2}$/', $country)) {
+        $paises = json_decode(get_post_meta($post_id, 'ipc_clicks_paises', true) ?: '{}', true);
+        $paises[$country] = ($paises[$country] ?? 0) + 1;
+        update_post_meta($post_id, 'ipc_clicks_paises', json_encode($paises));
+    }
+
     return rest_ensure_response(['success' => true, 'clicks' => $clicks + 1]);
+}
+
+function ipc_registrar_visitor($request) {
+    $country = strtoupper($request['country']);
+    $data = json_decode(get_option('ipc_visitor_countries', '{}'), true);
+    $data[$country] = ($data[$country] ?? 0) + 1;
+    update_option('ipc_visitor_countries', json_encode($data));
+    return rest_ensure_response(['success' => true]);
 }
 
 function ipc_check_secret($request) {
@@ -509,7 +538,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.6.1'
+        '2.6.2'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -601,7 +630,7 @@ function ipc_settings_page() {
     $auto_filter     = get_option('ipc_auto_filter_country', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.6.1</h1>
+        <h1>Ikerbit Product Cards v2.6.2</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -939,7 +968,22 @@ function ipc_stats_page() {
     }
     arsort($by_country);
 
-    // Visitas sin clicks
+    // Visitantes por país (tracking global + agregado de ofertas)
+    $visitor_global = json_decode(get_option('ipc_visitor_countries', '{}'), true);
+    $visitor_visitas = [];
+    $visitor_clicks = [];
+    foreach ($data_ofertas as $d) {
+        $pv = json_decode(get_post_meta($d['id'], 'ipc_visitas_paises', true) ?: '{}', true);
+        $pc = json_decode(get_post_meta($d['id'], 'ipc_clicks_paises', true) ?: '{}', true);
+        foreach ($pv as $c => $n) {
+            $visitor_visitas[$c] = ($visitor_visitas[$c] ?? 0) + $n;
+        }
+        foreach ($pc as $c => $n) {
+            $visitor_clicks[$c] = ($visitor_clicks[$c] ?? 0) + $n;
+        }
+    }
+    arsort($visitor_global);
+    arsort($visitor_visitas);
     $sin_clicks = array_filter($data_ofertas, fn($d) => $d['visitas'] > 0 && $d['clicks'] === 0);
     usort($sin_clicks, fn($a, $b) => $b['visitas'] - $a['visitas']);
     $sin_clicks = array_slice($sin_clicks, 0, 5);
@@ -1041,7 +1085,45 @@ function ipc_stats_page() {
             </div>
         </div>
 
-        <!-- CTR por país -->
+        <!-- Visitantes por país (tracking de visitantes) -->
+        <?php if (!empty($visitor_global) || !empty($visitor_visitas) || !empty($visitor_clicks)): ?>
+        <div style="margin-bottom:20px">
+            <div class="ipc-stat-box">
+                <h3>👥 Visitantes por país</h3>
+                <table class="widefat striped" style="font-size:13px">
+                    <thead><tr><th>País</th><th style="text-align:center">Visitas al sitio</th><th style="text-align:center">Visitas a ofertas</th><th style="text-align:center">Clicks</th></tr></thead>
+                    <tbody>
+                    <?php
+                    $all_countries = array_unique(array_merge(array_keys($visitor_global), array_keys($visitor_visitas), array_keys($visitor_clicks)));
+                    sort($all_countries);
+                    foreach ($all_countries as $c):
+                        $vg = $visitor_global[$c] ?? 0;
+                        $vv = $visitor_visitas[$c] ?? 0;
+                        $vc = $visitor_clicks[$c] ?? 0;
+                        $has_offers = false;
+                        foreach ($data_ofertas as $d) {
+                            if ($d['pais'] === $c) { $has_offers = true; break; }
+                        }
+                    ?>
+                    <tr>
+                        <td>
+                            <code><?php echo esc_html($c); ?></code>
+                            <?php if (!$has_offers && $vg > 0): ?>
+                            <span style="background:#fef3c7;color:#b45309;font-size:10px;padding:2px 6px;border-radius:8px;margin-left:6px">sin ofertas</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="text-align:center"><?php echo $vg ?: '—'; ?></td>
+                        <td style="text-align:center"><?php echo $vv ?: '—'; ?></td>
+                        <td style="text-align:center"><strong><?php echo $vc ?: '—'; ?></strong></td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- CTR por país (ofertas) -->
         <?php if (!empty($by_country)): ?>
         <div class="ipc-stat-box" style="margin-bottom:20px">
             <h3>🌍 CTR por país</h3>
@@ -1092,6 +1174,7 @@ add_action('wp_footer', function() {
     (function() {
         var restUrl  = '<?php echo esc_url(rest_url('ipc/v1')); ?>';
         var ga4      = <?php echo get_option('ipc_ga4_enabled', 0) ? 'true' : 'false'; ?>;
+        var ipcCountry = (document.cookie.match(/ipc_country=([A-Z]{2})/) || [])[1] || '';
 
         function sendGA4(eventName, params) {
             if (!ga4 || typeof gtag === 'undefined') return;
@@ -1106,7 +1189,7 @@ add_action('wp_footer', function() {
             $t = get_the_terms(get_the_ID(), 'ipc_categoria');
             echo json_encode($t ? $t[0]->slug : '');
         ?>;
-        fetch(restUrl + '/visita/' + postId, { method: 'POST' }).catch(function(){});
+        fetch(restUrl + '/visita/' + postId + '?country=' + ipcCountry, { method: 'POST' }).catch(function(){});
         sendGA4('affiliate_visit', { post_id: postId, post_title: postTitle, category: postCat });
         <?php endif; ?>
 
@@ -1124,7 +1207,7 @@ add_action('wp_footer', function() {
                 }
             }
             if (!pid) return;
-            fetch(restUrl + '/click/' + pid, { method: 'POST' }).catch(function(){});
+            fetch(restUrl + '/click/' + pid + '?country=' + ipcCountry, { method: 'POST' }).catch(function(){});
             // Evento GA4
             var card = btn.closest('[data-post-id]');
             var title = card ? (card.querySelector('.ipc-card__title, .ipc-widget__name') || {}).innerText || '' : '';
@@ -1143,6 +1226,7 @@ add_action('wp_footer', function() {
     ?>
     <script>
     (function() {
+        var restUrl = '<?php echo esc_url(rest_url('ipc/v1')); ?>';
         if (!document.cookie.match(/ipc_country=/)) {
             var lang = navigator.language || navigator.userLanguage || '';
             var parts = lang.split('-');
@@ -1150,6 +1234,11 @@ add_action('wp_footer', function() {
             if (country && /^[A-Z]{2}$/.test(country)) {
                 document.cookie = 'ipc_country=' + country + ';path=/;max-age=86400;samesite=lax';
             }
+        }
+        if (!document.cookie.match(/ipc_visited=/)) {
+            document.cookie = 'ipc_visited=1;path=/;max-age=3600;samesite=lax';
+            var c = (document.cookie.match(/ipc_country=([A-Z]{2})/) || [])[1] || '';
+            if (c) fetch(restUrl + '/visitor/' + c, { method: 'POST' }).catch(function(){});
         }
     })();
     </script>
