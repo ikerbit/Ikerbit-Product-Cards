@@ -28,6 +28,15 @@
 
 ---
 
+---
+
+## v2.6.1 — Saneamiento de precios y país en estadísticas
+- `ipc_sanitize_price()`: normaliza precios eliminando símbolos (€, $) y unificando comas a puntos al recibir desde n8n
+- Columna "País" en "Todas las Ofertas" con ordenación
+- CTR por país en el dashboard de estadísticas
+- Columna país en Top 10 y ofertas sin clicks
+- Símbolo de moneda dinámico en la columna Precio del listado de ofertas
+
 ## v2.6.0 — Internacionalización: ofertas por país
 - Campos nuevos `ipc_country`, `ipc_language`, `ipc_currency`, `ipc_custom_description`
 - Detección de país del visitante vía `navigator.language` + `Accept-Language` + cookie (sin dependencias externas)

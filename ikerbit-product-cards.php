@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.6.0
+ * Version: 2.6.1
  * Author: Ikerbit
  */
 
@@ -147,12 +147,23 @@ function ipc_check_secret($request) {
     return $secret === get_option('ipc_secret', 'CAMBIA_ESTE_SECRET');
 }
 
+function ipc_sanitize_price($value) {
+    $clean = trim(str_replace(['€', '$', '£', ' '], '', $value));
+    $clean = str_replace(',', '.', $clean);
+    if (preg_match('/^\d+\.?\d*$/', $clean)) return $clean;
+    return '0';
+}
+
 function ipc_guardar_meta($post_id, $p) {
     $campos = ['ipc_precio', 'ipc_precio_old', 'ipc_url', 'ipc_img', 'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock', 'ipc_descuento', 'ipc_badge', 'ipc_fecha', 'ipc_video'];
     foreach ($campos as $campo) {
         $key = str_replace('ipc_', '', $campo);
         if (isset($p[$key])) {
-            update_post_meta($post_id, $campo, sanitize_text_field($p[$key]));
+            $val = sanitize_text_field($p[$key]);
+            if ($campo === 'ipc_precio' || $campo === 'ipc_precio_old') {
+                $val = ipc_sanitize_price($val);
+            }
+            update_post_meta($post_id, $campo, $val);
         }
     }
     if (isset($p['descripcion'])) {
@@ -498,7 +509,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.6.0'
+        '2.6.1'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -590,7 +601,7 @@ function ipc_settings_page() {
     $auto_filter     = get_option('ipc_auto_filter_country', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.6.0</h1>
+        <h1>Ikerbit Product Cards v2.6.1</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -760,6 +771,9 @@ function ipc_ofertas_page() {
     } elseif ($orderby === 'producto') {
         $query_args['orderby'] = 'title';
         $query_args['order']   = $order;
+    } elseif ($orderby === 'country') {
+        $query_args['orderby']  = 'meta_value';
+        $query_args['meta_key'] = 'ipc_country';
     } else {
         $query_args['orderby'] = 'date';
     }
@@ -787,6 +801,7 @@ function ipc_ofertas_page() {
                     <th><a href="<?php echo $sort_url('precio'); ?>">Precio<?php echo $sort_arrow('precio'); ?></a></th>
                     <th><a href="<?php echo $sort_url('descuento'); ?>">Descuento<?php echo $sort_arrow('descuento'); ?></a></th>
                     <th><a href="<?php echo $sort_url('marketplace'); ?>">Marketplace<?php echo $sort_arrow('marketplace'); ?></a></th>
+                    <th><a href="<?php echo $sort_url('country'); ?>">País<?php echo $sort_arrow('country'); ?></a></th>
                     <th><a href="<?php echo $sort_url('categoria'); ?>">Categoría<?php echo $sort_arrow('categoria'); ?></a></th>
                     <th><a href="<?php echo $sort_url('marca'); ?>">Marca<?php echo $sort_arrow('marca'); ?></a></th>
                     <th><a href="<?php echo $sort_url('producto'); ?>">Producto<?php echo $sort_arrow('producto'); ?></a></th>
@@ -804,6 +819,7 @@ function ipc_ofertas_page() {
                 $precio     = get_post_meta($id, 'ipc_precio', true);
                 $descuento  = get_post_meta($id, 'ipc_descuento', true);
                 $marketplace= get_post_meta($id, 'ipc_marketplace', true);
+                $country    = get_post_meta($id, 'ipc_country', true);
                 $fecha      = get_post_meta($id, 'ipc_fecha', true);
                 $visitas    = intval(get_post_meta($id, 'ipc_visitas', true));
                 $clicks_cnt = intval(get_post_meta($id, 'ipc_clicks', true));
@@ -814,13 +830,15 @@ function ipc_ofertas_page() {
                 $prod_terms   = get_the_terms($id, 'ipc_producto');
                 $prod_val     = (!empty($prod_terms) && !is_wp_error($prod_terms)) ? esc_html(mb_strimwidth($prod_terms[0]->name, 0, 20, '…')) : '—';
                 $delete_url   = admin_url('admin.php?page=ipc-ofertas&delete=' . $id . '&orderby=' . $orderby . '&order=' . $order);
+                $currency_sym = ipc_currency_symbol(get_post_meta($id, 'ipc_currency', true) ?: 'EUR');
             ?>
                 <tr>
                     <td><?php if ($img): ?><img src="<?php echo esc_url($img); ?>" style="width:50px;height:50px;object-fit:contain;background:#f5f5f5;border-radius:4px"><?php endif; ?></td>
                     <td><a href="<?php echo esc_url(get_permalink($id)); ?>" target="_blank"><strong><?php echo esc_html(mb_strimwidth(get_the_title(), 0, 50, '…')); ?></strong></a></td>
-                    <td><?php echo $precio ? esc_html($precio) . '€' : '—'; ?></td>
+                    <td><?php echo $precio ? esc_html($precio) . esc_html($currency_sym) : '—'; ?></td>
                     <td><?php echo $descuento ? '<span style="background:#ff3b30;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px">-' . esc_html($descuento) . '%</span>' : '—'; ?></td>
                     <td><?php echo esc_html(ucfirst($marketplace ?: '—')); ?></td>
+                    <td><code><?php echo esc_html($country ?: '—'); ?></code></td>
                     <td><code><?php echo esc_html($cat); ?></code></td>
                     <td><?php echo $marca_val; ?></td>
                     <td><?php echo $prod_val; ?></td>
@@ -835,7 +853,7 @@ function ipc_ofertas_page() {
                 </tr>
             <?php endwhile; wp_reset_postdata();
             else: ?>
-                <tr><td colspan="13">No hay ofertas todavía.</td></tr>
+                <tr><td colspan="14">No hay ofertas todavía.</td></tr>
             <?php endif; ?>
             </tbody>
         </table>
@@ -872,6 +890,7 @@ function ipc_stats_page() {
         $total_clicks  += $c;
         $terms = get_the_terms($pid, 'ipc_categoria');
         $mp    = get_post_meta($pid, 'ipc_marketplace', true);
+        $pais  = get_post_meta($pid, 'ipc_country', true) ?: '—';
         $data_ofertas[] = [
             'id'       => $pid,
             'titulo'   => get_the_title($pid),
@@ -880,6 +899,7 @@ function ipc_stats_page() {
             'ctr'      => $v > 0 ? round(($c / $v) * 100, 1) : 0,
             'cat'      => $terms ? $terms[0]->name : '—',
             'mp'       => ucfirst($mp ?: '—'),
+            'pais'     => $pais,
             'ultimo'   => get_post_meta($pid, 'ipc_ultimo_click', true) ?: '—',
         ];
     }
@@ -908,6 +928,16 @@ function ipc_stats_page() {
         $by_mp[$mp]['visitas'] += $d['visitas'];
         $by_mp[$mp]['clicks']  += $d['clicks'];
     }
+
+    // CTR por país
+    $by_country = [];
+    foreach ($data_ofertas as $d) {
+        $pais = $d['pais'];
+        if (!isset($by_country[$pais])) $by_country[$pais] = ['visitas' => 0, 'clicks' => 0];
+        $by_country[$pais]['visitas'] += $d['visitas'];
+        $by_country[$pais]['clicks']  += $d['clicks'];
+    }
+    arsort($by_country);
 
     // Visitas sin clicks
     $sin_clicks = array_filter($data_ofertas, fn($d) => $d['visitas'] > 0 && $d['clicks'] === 0);
@@ -954,7 +984,7 @@ function ipc_stats_page() {
             <div class="ipc-stat-box">
                 <h3>🔥 Top 10 ofertas por clicks</h3>
                 <table class="widefat striped" style="font-size:13px">
-                    <thead><tr><th>#</th><th>Oferta</th><th>Categoría</th><th>Marketplace</th><th style="text-align:center">Visitas</th><th style="text-align:center">Clicks</th><th style="text-align:center">CTR</th><th>Último click</th></tr></thead>
+                    <thead><tr><th>#</th><th>Oferta</th><th>Categoría</th><th>Marketplace</th><th>País</th><th style="text-align:center">Visitas</th><th style="text-align:center">Clicks</th><th style="text-align:center">CTR</th><th>Último click</th></tr></thead>
                     <tbody>
                     <?php foreach ($top10 as $i => $d): ?>
                     <tr>
@@ -962,6 +992,7 @@ function ipc_stats_page() {
                         <td><a href="<?php echo get_permalink($d['id']); ?>" target="_blank"><?php echo esc_html(mb_strimwidth($d['titulo'], 0, 45, '…')); ?></a></td>
                         <td><?php echo esc_html($d['cat']); ?></td>
                         <td><?php echo esc_html($d['mp']); ?></td>
+                        <td><code><?php echo esc_html($d['pais']); ?></code></td>
                         <td style="text-align:center"><?php echo $d['visitas'] ?: '—'; ?></td>
                         <td style="text-align:center"><strong><?php echo $d['clicks'] ?: '—'; ?></strong></td>
                         <td style="text-align:center">
@@ -972,7 +1003,7 @@ function ipc_stats_page() {
                         <td style="font-size:11px;color:#999"><?php echo esc_html($d['ultimo']); ?></td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php if (empty($top10)): ?><tr><td colspan="8">No hay datos todavía.</td></tr><?php endif; ?>
+                    <?php if (empty($top10)): ?><tr><td colspan="9">No hay datos todavía.</td></tr><?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -1010,18 +1041,36 @@ function ipc_stats_page() {
             </div>
         </div>
 
+        <!-- CTR por país -->
+        <?php if (!empty($by_country)): ?>
+        <div class="ipc-stat-box" style="margin-bottom:20px">
+            <h3>🌍 CTR por país</h3>
+            <?php foreach ($by_country as $pais => $d):
+                $ctr = $d['visitas'] > 0 ? round(($d['clicks'] / $d['visitas']) * 100, 1) : 0;
+                $pct = $d['visitas'] > 0 ? min(100, round(($d['clicks'] / $d['visitas']) * 100)) : 0;
+            ?>
+            <div class="ipc-bar-wrap">
+                <span style="width:110px;color:#555"><?php echo esc_html($pais); ?></span>
+                <div class="ipc-bar" style="width:<?php echo $pct * 2; ?>px;background:#16a34a"></div>
+                <span style="color:#888"><?php echo $ctr; ?>% (<?php echo $d['clicks']; ?>/<?php echo $d['visitas']; ?>)</span>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Visitas sin clicks -->
         <?php if (!empty($sin_clicks)): ?>
         <div class="ipc-stat-box">
             <h3>⚠️ Ofertas con visitas pero sin clicks <span style="font-size:12px;font-weight:400;color:#999">— candidatas a optimizar</span></h3>
             <table class="widefat" style="font-size:13px">
-                <thead><tr><th>Oferta</th><th>Categoría</th><th>Marketplace</th><th style="text-align:center">Visitas</th></tr></thead>
+                <thead><tr><th>Oferta</th><th>Categoría</th><th>Marketplace</th><th>País</th><th style="text-align:center">Visitas</th></tr></thead>
                 <tbody>
                 <?php foreach ($sin_clicks as $d): ?>
                 <tr>
                     <td><a href="<?php echo esc_url(admin_url('admin.php?page=ipc-edit&post_id=' . $d['id'])); ?>"><?php echo esc_html(mb_strimwidth($d['titulo'], 0, 55, '…')); ?></a></td>
                     <td><?php echo esc_html($d['cat']); ?></td>
                     <td><?php echo esc_html($d['mp']); ?></td>
+                    <td><code><?php echo esc_html($d['pais']); ?></code></td>
                     <td style="text-align:center"><?php echo $d['visitas']; ?></td>
                 </tr>
                 <?php endforeach; ?>
