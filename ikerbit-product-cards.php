@@ -240,17 +240,30 @@ function ipc_crear_oferta($request) {
     $country      = strtoupper(sanitize_text_field($p['country'] ?? ''));
 
     if ($product_code && $marketplace && $country) {
+        $meta_query = [
+            ['key' => 'ipc_product_code', 'value' => $product_code],
+            ['key' => 'ipc_marketplace', 'value' => $marketplace],
+            ['key' => 'ipc_country', 'value' => $country],
+        ];
         $existing = get_posts([
             'post_type'      => 'ipc_oferta',
             'post_status'    => 'publish',
             'posts_per_page' => 1,
             'fields'         => 'ids',
-            'meta_query'     => [
-                ['key' => 'ipc_product_code', 'value' => $product_code],
-                ['key' => 'ipc_marketplace', 'value' => $marketplace],
-                ['key' => 'ipc_country', 'value' => $country],
-            ],
+            'meta_query'     => $meta_query,
         ]);
+        // Fallback: si no encuentra con country exacto, busca por marketplace + product_code
+        // (cubre legacy offers sin ipc_country que realmente son del país indicado)
+        if (empty($existing)) {
+            array_pop($meta_query);
+            $existing = get_posts([
+                'post_type'      => 'ipc_oferta',
+                'post_status'    => 'publish',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'meta_query'     => $meta_query,
+            ]);
+        }
         if (!empty($existing)) {
             $post_id = $existing[0];
             wp_update_post(['ID' => $post_id, 'post_title' => sanitize_text_field($p['titulo'])]);
