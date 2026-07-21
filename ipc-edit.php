@@ -27,7 +27,7 @@ function ipc_edit_save($post_id) {
     $campos_texto = [
         'ipc_precio', 'ipc_precio_old', 'ipc_descuento', 'ipc_url', 'ipc_img',
         'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock',
-        'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click',
+        'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_custom_description', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click',
         'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_product_code'
     ];
 
