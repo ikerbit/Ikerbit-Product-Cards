@@ -264,6 +264,18 @@ function ipc_crear_oferta($request) {
                 'meta_query'     => $meta_query,
             ]);
         }
+        // Segundo fallback: busca por ipc_url (cubre legacy sin product_code)
+        if (empty($existing) && !empty($p['url'])) {
+            $existing = get_posts([
+                'post_type'      => 'ipc_oferta',
+                'post_status'    => 'publish',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'meta_query'     => [
+                    ['key' => 'ipc_url', 'value' => sanitize_text_field($p['url'])],
+                ],
+            ]);
+        }
         if (!empty($existing)) {
             $post_id = $existing[0];
             wp_update_post(['ID' => $post_id, 'post_title' => sanitize_text_field($p['titulo'])]);
