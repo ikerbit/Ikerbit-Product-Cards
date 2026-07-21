@@ -384,6 +384,10 @@ function ipc_render_card($post, $size = 'normal') {
     $descuento = esc_html($m['descuento']);
     $badge = esc_html($m['badge']);
     $currency_sym = esc_html(ipc_currency_symbol($m['currency'] ?: 'EUR'));
+    $custom_desc = $m['custom_description'];
+    if ($custom_desc) {
+        $custom_desc = esc_html(mb_strlen($custom_desc) > 120 ? mb_substr($custom_desc, 0, 117) . '…' : $custom_desc);
+    }
 
     $stars = '';
     for ($i = 1; $i <= 5; $i++) {
@@ -408,6 +412,7 @@ function ipc_render_card($post, $size = 'normal') {
         </div>
         <div class="ipc-card__body">
             <h3 class="ipc-card__title"><a href="<?php echo $post_url; ?>"><?php echo $titulo; ?></a></h3>
+            <?php if ($custom_desc): ?><p class="ipc-card__desc"><?php echo $custom_desc; ?></p><?php endif; ?>
             <?php if ($rating): ?>
             <div class="ipc-card__rating">
                 <span class="ipc-stars"><?php echo $stars; ?></span>
