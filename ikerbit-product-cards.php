@@ -16,6 +16,13 @@ YahnisElsts\PluginUpdateChecker\v5p7\PucFactory::buildUpdateChecker(
     'ikerbit-product-cards'
 );
 
+function ipc_render_markdown($text) {
+    if (!class_exists('Parsedown')) return nl2br(esc_html($text));
+    $pd = new Parsedown();
+    $pd->setSafeMode(true);
+    return $pd->text($text);
+}
+
 // ─────────────────────────────────────────
 // 1. CUSTOM POST TYPE: oferta
 // ─────────────────────────────────────────
@@ -386,7 +393,7 @@ function ipc_render_card($post, $size = 'normal') {
     $currency_sym = esc_html(ipc_currency_symbol($m['currency'] ?: 'EUR'));
     $custom_desc = $m['custom_description'];
     if ($custom_desc) {
-        $custom_desc = strip_tags($custom_desc);
+        $custom_desc = strip_tags(ipc_render_markdown($custom_desc));
         $custom_desc = mb_strlen($custom_desc) > 120 ? mb_substr($custom_desc, 0, 117) . '…' : $custom_desc;
         $custom_desc = nl2br(esc_html($custom_desc));
     }

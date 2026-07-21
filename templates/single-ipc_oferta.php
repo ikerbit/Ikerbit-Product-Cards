@@ -19,7 +19,7 @@ while (have_posts()) : the_post();
     $badge        = get_post_meta($post_id, 'ipc_badge', true);
     $fecha        = get_post_meta($post_id, 'ipc_fecha', true);
     $descripcion_raw = get_post_meta($post_id, 'ipc_custom_description', true);
-    $descripcion  = $descripcion_raw ?: get_post_meta($post_id, 'ipc_descripcion', true);
+    $descripcion  = $descripcion_raw ? ipc_render_markdown($descripcion_raw) : nl2br(wp_kses_post(get_post_meta($post_id, 'ipc_descripcion', true)));
     $imagenes     = json_decode(get_post_meta($post_id, 'ipc_imagenes', true) ?: '[]', true);
     $video_raw    = get_post_meta($post_id, 'ipc_video', true);
     $currency     = get_post_meta($post_id, 'ipc_currency', true) ?: 'EUR';
@@ -228,7 +228,7 @@ while (have_posts()) : the_post();
     <?php if ($descripcion): ?>
     <div class="ipc-single__section">
         <h2>Descripción del producto</h2>
-        <div class="ipc-single__desc-content"><?php echo nl2br(wp_kses_post($descripcion)); ?></div>
+        <div class="ipc-single__desc-content"><?php echo $descripcion; ?></div>
     </div>
     <?php endif; ?>
 
