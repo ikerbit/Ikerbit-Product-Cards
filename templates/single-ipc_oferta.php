@@ -228,7 +228,7 @@ while (have_posts()) : the_post();
     <?php if ($descripcion): ?>
     <div class="ipc-single__section">
         <h2>Descripción del producto</h2>
-        <div class="ipc-single__desc-content"><?php echo wp_kses_post($descripcion); ?></div>
+        <div class="ipc-single__desc-content"><?php echo nl2br(wp_kses_post($descripcion)); ?></div>
     </div>
     <?php endif; ?>
 
