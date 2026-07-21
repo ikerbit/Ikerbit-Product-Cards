@@ -61,7 +61,7 @@ $categorias = get_terms(['taxonomy' => 'ipc_categoria', 'hide_empty' => true, 'o
 
 /* CABECERA */
 .ipc-archive__header { margin-bottom: 24px; }
-.ipc-archive__title { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: #111; margin: 0 0 16px; }
+.ipc-archive__title { font-family: 'DM Sans', sans-serif; font-size: 32px; font-weight: 700; color: #111; margin: 0 0 16px; }
 
 /* CATEGORÍAS — pills discretas */
 .ipc-archive__cats {

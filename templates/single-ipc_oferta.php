@@ -90,12 +90,12 @@ while (have_posts()) : the_post();
 .ipc-single__btn:hover { opacity: 0.88; }
 .ipc-single__disclaimer { font-size: 11px; color: #bbb; text-align: center; margin-top: -8px; }
 .ipc-single__section { margin-top: 40px; padding-top: 32px; border-top: 1px solid #f0f0f0; }
-.ipc-single__section h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #111; margin-bottom: 16px; }
+.ipc-single__section h2 { font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 700; color: #111; margin-bottom: 16px; }
 .ipc-single__desc-content { font-size: 15px; line-height: 1.7; color: #444; }
 .ipc-single__videos { display: flex; flex-direction: column; gap: 16px; }
 .ipc-single__video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #000; }
 .ipc-single__video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-.ipc-single__related h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: #111; margin-bottom: 20px; }
+.ipc-single__related h2 { font-family: 'DM Sans', sans-serif; font-size: 20px; font-weight: 700; color: #111; margin-bottom: 20px; }
 </style>
 
 <div class="ipc-single" data-post-id="<?php echo $post_id; ?>">

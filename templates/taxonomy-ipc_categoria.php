@@ -44,7 +44,7 @@ $query = new WP_Query($base_args);
 .ipc-archive__breadcrumb a { color: #666; text-decoration: none; }
 .ipc-archive__breadcrumb a:hover { text-decoration: underline; }
 .ipc-archive__breadcrumb span { margin: 0 6px; }
-.ipc-archive__title { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: #111; margin: 0 0 8px; }
+.ipc-archive__title { font-family: 'DM Sans', sans-serif; font-size: 32px; font-weight: 700; color: #111; margin: 0 0 8px; }
 .ipc-archive__count { font-size: 14px; color: #999; }
 .ipc-archive__desc { font-size: 15px; color: #555; line-height: 1.6; margin-top: 8px; }
 .ipc-archive__filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }

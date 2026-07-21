@@ -19,7 +19,7 @@ YahnisElsts\PluginUpdateChecker\v5p7\PucFactory::buildUpdateChecker(
 function ipc_render_markdown($text) {
     if (!class_exists('Parsedown')) return nl2br(esc_html($text));
     $pd = new Parsedown();
-    $pd->setSafeMode(true);
+    $pd->setMarkupEscaped(true);
     return $pd->text($text);
 }
 
