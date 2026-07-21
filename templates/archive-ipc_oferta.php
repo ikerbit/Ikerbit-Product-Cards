@@ -6,7 +6,7 @@
 get_header();
 
 $paged    = get_query_var('paged') ?: 1;
-$orderby  = $_GET['orderby'] ?? 'date';
+$orderby  = $_GET['orden'] ?? 'date';
 
 $query_args = [
     'post_type'      => 'ipc_oferta',
@@ -129,7 +129,7 @@ $categorias = get_terms(['taxonomy' => 'ipc_categoria', 'hide_empty' => true, 'o
         $base_url = home_url('/ofertas/');
         $filters  = ['date' => 'Más recientes', 'descuento' => 'Mayor descuento', 'precio_asc' => 'Precio ↑', 'precio_desc' => 'Precio ↓'];
         foreach ($filters as $key => $label):
-            $url    = add_query_arg('orderby', $key, $base_url);
+            $url    = add_query_arg('orden', $key, $base_url);
             $active = $orderby === $key ? ' active' : '';
         ?>
         <a href="<?php echo esc_url($url); ?>" class="ipc-archive__filter-btn<?php echo $active; ?>"><?php echo $label; ?></a>
@@ -149,7 +149,7 @@ $categorias = get_terms(['taxonomy' => 'ipc_categoria', 'hide_empty' => true, 'o
     ?>
     <div class="ipc-archive__pagination">
         <?php for ($i = 1; $i <= $total_pages; $i++):
-            $url     = add_query_arg(['paged' => $i, 'orderby' => $orderby], home_url('/ofertas/'));
+            $url     = add_query_arg(['paged' => $i, 'orden' => $orderby], home_url('/ofertas/'));
             $current = $i === $paged ? ' current' : '';
         ?>
         <a href="<?php echo esc_url($url); ?>" class="ipc-archive__page-btn<?php echo $current; ?>"><?php echo $i; ?></a>

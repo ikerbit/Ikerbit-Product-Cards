@@ -74,10 +74,10 @@ $query = new WP_Query($base_args);
         <span class="ipc-archive__filter-label">Ordenar por:</span>
         <?php
         $current_url = get_term_link($term);
-        $orderby = $_GET['orderby'] ?? 'date';
+        $orderby = $_GET['orden'] ?? 'date';
         $filters = ['date' => 'Más recientes (fecha oferta)', 'descuento' => 'Mayor descuento', 'precio_asc' => 'Precio ↑', 'precio_desc' => 'Precio ↓'];
         foreach ($filters as $key => $label):
-            $url = add_query_arg('orderby', $key, $current_url);
+            $url = add_query_arg('orden', $key, $current_url);
             $active = $orderby === $key ? ' active' : '';
         ?>
         <a href="<?php echo esc_url($url); ?>" class="ipc-archive__filter-btn<?php echo $active; ?>"><?php echo $label; ?></a>
@@ -86,7 +86,7 @@ $query = new WP_Query($base_args);
 
     <?php
     // Aplicar ordenación desde filtros
-    $orderby = $_GET['orderby'] ?? 'date';
+    $orderby = $_GET['orden'] ?? 'date';
     $order_args = [];
     if ($orderby === 'descuento') {
         $order_args = ['orderby' => 'meta_value_num', 'meta_key' => 'ipc_descuento', 'order' => 'DESC'];
@@ -113,7 +113,7 @@ $query = new WP_Query($base_args);
     ?>
     <div class="ipc-archive__pagination">
         <?php for ($i = 1; $i <= $total_pages; $i++):
-            $page_url = add_query_arg(['paged' => $i, 'orderby' => $orderby], get_term_link($term));
+            $page_url = add_query_arg(['paged' => $i, 'orden' => $orderby], get_term_link($term));
             $current  = $i === $paged ? ' current' : '';
         ?>
         <a href="<?php echo esc_url($page_url); ?>" class="ipc-archive__page-btn<?php echo $current; ?>"><?php echo $i; ?></a>
