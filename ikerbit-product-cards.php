@@ -632,6 +632,7 @@ add_action('admin_menu', function() {
     add_submenu_page('ipc-settings', 'Ajustes', 'Ajustes', 'manage_options', 'ipc-settings', 'ipc_settings_page');
     add_submenu_page('ipc-settings', 'Todas las Ofertas', 'Todas las Ofertas', 'manage_options', 'ipc-ofertas', 'ipc_ofertas_page');
     add_submenu_page('ipc-settings', 'Estadísticas', 'Estadísticas', 'manage_options', 'ipc-stats', 'ipc_stats_page');
+    add_submenu_page(null, 'Duplicados', 'Duplicados', 'manage_options', 'ipc-duplicados', 'ipc_duplicados_page');
 });
 
 // ─────────────────────────────────────────
@@ -925,7 +926,7 @@ function ipc_ofertas_page() {
     };
     ?>
     <div class="wrap">
-        <h1>Todas las Ofertas <a href="<?php echo admin_url('admin.php?page=ipc-settings'); ?>" class="page-title-action">Ajustes</a></h1>
+        <h1>Todas las Ofertas <a href="<?php echo admin_url('admin.php?page=ipc-settings'); ?>" class="page-title-action">Ajustes</a> <a href="<?php echo admin_url('admin.php?page=ipc-duplicados'); ?>" class="page-title-action">Duplicados</a></h1>
         <form method="get" action="<?php echo admin_url('admin.php'); ?>" style="margin-bottom:16px;display:flex;gap:8px;align-items:center">
             <input type="hidden" name="page" value="ipc-ofertas">
             <select name="search_field" style="width:150px">
@@ -1287,6 +1288,101 @@ function ipc_stats_page() {
                 </tbody>
             </table>
         </div>
+        <?php endif; ?>
+    </div>
+    <?php
+}
+
+// ─────────────────────────────────────────
+// 8b. PÁGINA DE DUPLICADOS
+// ─────────────────────────────────────────
+function ipc_duplicados_page() {
+    if (!current_user_can('manage_options')) wp_die('Sin permisos.');
+
+    if (isset($_POST['clean_dupes']) && check_admin_referer('ipc_clean_dupes')) {
+        $all = get_posts(['post_type' => 'ipc_oferta', 'posts_per_page' => -1, 'fields' => 'ids', 'post_status' => 'publish']);
+        $by_url = [];
+        foreach ($all as $id) {
+            $url = get_post_meta($id, 'ipc_url', true);
+            if ($url) {
+                if (!isset($by_url[$url])) $by_url[$url] = [];
+                $by_url[$url][] = $id;
+            }
+        }
+        $deleted = 0;
+        foreach ($by_url as $url => $ids) {
+            if (count($ids) > 1) {
+                sort($ids);
+                $keep = array_pop($ids);
+                foreach ($ids as $id) { wp_delete_post($id, true); $deleted++; }
+            }
+        }
+        echo '<div class="updated"><p>✅ ' . $deleted . ' ofertas duplicadas eliminadas. Se conserva la más reciente de cada grupo.</p></div>';
+    }
+
+    if (isset($_GET['delete_dupe']) && current_user_can('manage_options')) {
+        wp_delete_post(intval($_GET['delete_dupe']), true);
+        echo '<div class="updated"><p>✅ Oferta eliminada.</p></div>';
+    }
+
+    $all = get_posts(['post_type' => 'ipc_oferta', 'posts_per_page' => -1, 'fields' => 'ids', 'post_status' => 'publish']);
+    $by_url = [];
+    foreach ($all as $id) {
+        $url = get_post_meta($id, 'ipc_url', true);
+        if ($url) {
+            if (!isset($by_url[$url])) $by_url[$url] = [];
+            $by_url[$url][] = $id;
+        }
+    }
+    $dupes = array_filter($by_url, fn($p) => count($p) > 1);
+    ?>
+    <div class="wrap">
+        <h1>Ofertas duplicadas <a href="<?php echo admin_url('admin.php?page=ipc-ofertas'); ?>" class="page-title-action">← Todas las ofertas</a></h1>
+        <p>Se han encontrado <strong><?php echo count($dupes); ?></strong> URLs con ofertas duplicadas (total: <?php echo array_sum(array_map('count', $dupes)); ?> ofertas).</p>
+
+        <?php if (!empty($dupes)): ?>
+        <form method="post" style="margin-bottom:20px">
+            <?php wp_nonce_field('ipc_clean_dupes'); ?>
+            <input type="hidden" name="clean_dupes" value="1">
+            <button type="submit" class="button button-primary" onclick="return confirm('¿Eliminar todos los duplicados conservando la oferta más reciente de cada grupo?')">🧹 Eliminar todos los duplicados</button>
+        </form>
+
+        <table class="widefat striped">
+            <thead><tr><th>URL</th><th>Ofertas</th><th style="text-align:center">Creado</th><th style="text-align:center">Acción</th></tr></thead>
+            <tbody>
+            <?php foreach ($dupes as $url => $ids): sort($ids); ?>
+            <tr>
+                <td style="word-break:break-all;font-size:12px"><code><?php echo esc_html($url); ?></code></td>
+                <td>
+                    <?php foreach ($ids as $id):
+                        $pc = get_post_meta($id, 'ipc_product_code', true);
+                        $c = get_post_meta($id, 'ipc_country', true) ?: '—';
+                    ?>
+                    <div style="margin-bottom:4px">
+                        <strong>#<?php echo $id; ?></strong>
+                        <a href="<?php echo get_permalink($id); ?>" target="_blank"><?php echo esc_html(mb_strimwidth(get_the_title($id), 0, 50, '…')); ?></a>
+                        <span style="color:#999;font-size:11px"><?php echo $pc ? ' | pc=' . esc_html($pc) : ''; ?> | <?php echo esc_html($c); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                </td>
+                <td style="text-align:center;font-size:11px">
+                    <?php foreach ($ids as $id): ?>
+                    <div style="margin-bottom:4px"><?php echo get_the_date('Y-m-d H:i', $id); ?></div>
+                    <?php endforeach; ?>
+                </td>
+                <td style="text-align:center;white-space:nowrap">
+                    <?php foreach ($ids as $id): ?>
+                    <div style="margin-bottom:4px">
+                        <a href="<?php echo admin_url('admin.php?page=ipc-duplicados&delete_dupe=' . $id); ?>" class="button button-small" style="color:#cc0000" onclick="return confirm('¿Eliminar oferta #<?php echo $id; ?>?')">Eliminar</a>
+                    </div>
+                    <?php endforeach; ?>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php else: ?>
+        <p style="color:#16a34a;font-size:15px">✅ No se han encontrado ofertas duplicadas.</p>
         <?php endif; ?>
     </div>
     <?php
