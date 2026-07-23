@@ -887,6 +887,30 @@ function ipc_ofertas_page() {
         $query_args['orderby'] = 'date';
     }
 
+    if ($search_field && $search_term) {
+        if ($search_field === 'titulo') {
+            $query_args['s'] = $search_term;
+        } elseif ($search_field === 'product_code') {
+            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
+            $query_args['meta_query'][] = ['key' => 'ipc_product_code', 'value' => $search_term, 'compare' => 'LIKE'];
+        } elseif ($search_field === 'marketplace') {
+            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
+            $query_args['meta_query'][] = ['key' => 'ipc_marketplace', 'value' => $search_term, 'compare' => 'LIKE'];
+        } elseif ($search_field === 'country') {
+            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
+            $query_args['meta_query'][] = ['key' => 'ipc_country', 'value' => strtoupper($search_term)];
+        } elseif ($search_field === 'categoria') {
+            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
+            $query_args['tax_query'][] = ['taxonomy' => 'ipc_categoria', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
+        } elseif ($search_field === 'marca') {
+            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
+            $query_args['tax_query'][] = ['taxonomy' => 'ipc_marca', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
+        } elseif ($search_field === 'producto') {
+            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
+            $query_args['tax_query'][] = ['taxonomy' => 'ipc_producto', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
+        }
+    }
+
     $query = new WP_Query($query_args);
 
     // Helper para links de ordenación
@@ -1142,8 +1166,8 @@ function ipc_stats_page() {
                         <td><?php echo esc_html($d['cat']); ?></td>
                         <td><?php echo esc_html($d['mp']); ?></td>
                         <td><code><?php echo esc_html($d['pais']); ?></code></td>
-                        <td style="text-align:center"><?php echo $d['visitas'] !== 0 ? $d['visitas'] : '—'; ?></td>
-                        <td style="text-align:center"><strong><?php echo $d['clicks'] !== 0 ? $d['clicks'] : '—'; ?></strong></td>
+                        <td style="text-align:center"><?php echo (int)$d['visitas']; ?></td>
+                        <td style="text-align:center"><strong><?php echo (int)$d['clicks']; ?></strong></td>
                         <td style="text-align:center">
                             <?php if ($d['visitas'] > 0): ?>
                             <span style="background:<?php echo $d['ctr'] >= 20 ? '#dcfce7' : ($d['ctr'] >= 10 ? '#fef9c3' : '#f3f4f6'); ?>;color:<?php echo $d['ctr'] >= 20 ? '#16a34a' : ($d['ctr'] >= 10 ? '#b45309' : '#555'); ?>;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600"><?php echo $d['ctr']; ?>%</span>
@@ -1406,30 +1430,6 @@ class IPC_Widget_Ofertas extends WP_Widget {
                 'value'   => $marketplace,
                 'compare' => 'LIKE',
             ]];
-    }
-
-    if ($search_field && $search_term) {
-        if ($search_field === 'titulo') {
-            $query_args['s'] = $search_term;
-        } elseif ($search_field === 'product_code') {
-            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
-            $query_args['meta_query'][] = ['key' => 'ipc_product_code', 'value' => $search_term, 'compare' => 'LIKE'];
-        } elseif ($search_field === 'marketplace') {
-            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
-            $query_args['meta_query'][] = ['key' => 'ipc_marketplace', 'value' => $search_term, 'compare' => 'LIKE'];
-        } elseif ($search_field === 'country') {
-            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
-            $query_args['meta_query'][] = ['key' => 'ipc_country', 'value' => strtoupper($search_term)];
-        } elseif ($search_field === 'categoria') {
-            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
-            $query_args['tax_query'][] = ['taxonomy' => 'ipc_categoria', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
-        } elseif ($search_field === 'marca') {
-            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
-            $query_args['tax_query'][] = ['taxonomy' => 'ipc_marca', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
-        } elseif ($search_field === 'producto') {
-            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
-            $query_args['tax_query'][] = ['taxonomy' => 'ipc_producto', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
-        }
     }
 
     $query = new WP_Query($query_args);
