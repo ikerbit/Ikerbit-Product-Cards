@@ -1142,8 +1142,8 @@ function ipc_stats_page() {
                         <td><?php echo esc_html($d['cat']); ?></td>
                         <td><?php echo esc_html($d['mp']); ?></td>
                         <td><code><?php echo esc_html($d['pais']); ?></code></td>
-                        <td style="text-align:center"><?php echo $d['visitas'] ?: '—'; ?></td>
-                        <td style="text-align:center"><strong><?php echo $d['clicks'] ?: '—'; ?></strong></td>
+                        <td style="text-align:center"><?php echo $d['visitas'] !== 0 ? $d['visitas'] : '—'; ?></td>
+                        <td style="text-align:center"><strong><?php echo $d['clicks'] !== 0 ? $d['clicks'] : '—'; ?></strong></td>
                         <td style="text-align:center">
                             <?php if ($d['visitas'] > 0): ?>
                             <span style="background:<?php echo $d['ctr'] >= 20 ? '#dcfce7' : ($d['ctr'] >= 10 ? '#fef9c3' : '#f3f4f6'); ?>;color:<?php echo $d['ctr'] >= 20 ? '#16a34a' : ($d['ctr'] >= 10 ? '#b45309' : '#555'); ?>;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600"><?php echo $d['ctr']; ?>%</span>
@@ -1406,7 +1406,7 @@ class IPC_Widget_Ofertas extends WP_Widget {
                 'value'   => $marketplace,
                 'compare' => 'LIKE',
             ]];
-        }
+    }
 
     if ($search_field && $search_term) {
         if ($search_field === 'titulo') {
