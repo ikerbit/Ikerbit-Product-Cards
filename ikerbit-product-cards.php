@@ -246,12 +246,12 @@ function ipc_crear_oferta($request) {
     $marketplace  = sanitize_text_field($p['marketplace'] ?? '');
     $country      = strtoupper(sanitize_text_field($p['country'] ?? ''));
 
-    if ($product_code && $marketplace && $country) {
+    if ($product_code && $marketplace) {
         $meta_query = [
             ['key' => 'ipc_product_code', 'value' => $product_code],
             ['key' => 'ipc_marketplace', 'value' => $marketplace],
-            ['key' => 'ipc_country', 'value' => $country],
         ];
+        if ($country) $meta_query[] = ['key' => 'ipc_country', 'value' => $country];
         $existing = get_posts([
             'post_type'      => 'ipc_oferta',
             'post_status'    => 'publish',
@@ -259,9 +259,8 @@ function ipc_crear_oferta($request) {
             'fields'         => 'ids',
             'meta_query'     => $meta_query,
         ]);
-        // Fallback: si no encuentra con country exacto, busca por marketplace + product_code
-        // (cubre legacy offers sin ipc_country que realmente son del país indicado)
-        if (empty($existing)) {
+        // Fallback sin country (cubre legacy sin ipc_country o envíos sin country)
+        if (empty($existing) && $country) {
             array_pop($meta_query);
             $existing = get_posts([
                 'post_type'      => 'ipc_oferta',
