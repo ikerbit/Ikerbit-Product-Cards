@@ -2,6 +2,15 @@
 
 ## Implemented
 
+### v2.7.1 — Search, duplicates & improvements
+- Search bar in "Todas las Ofertas" (7 fields)
+- Duplicate finder and cleanup (by URL)
+- Markdown support for custom_description
+- Custom description visible in cards
+- Product code + Edit in Top 10 stats
+- Dedup fix: works without country field
+- Consistent DM Sans font for all section titles
+
 ### v2.7.0 — Product code & upsert
 - New field `ipc_product_code` for unique product identification (ASIN, etc.)
 - Upsert: POST to create endpoint auto-updates if matching product_code + marketplace + country exists

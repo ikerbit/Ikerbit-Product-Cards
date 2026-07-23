@@ -34,6 +34,18 @@
 
 ---
 
+---
+
+## v2.7.1 — Buscador, duplicados, markdown y mejoras
+- Buscador desplegable en "Todas las Ofertas" por título, código, marketplace, país, categoría, marca y producto
+- Página de detección y limpieza de duplicados por URL (individual y masiva)
+- Corregido: deduplicación en `ipc_crear_oferta` ahora funciona también sin country
+- Soporte markdown en `custom_description` usando Parsedown (incluido en el plugin)
+- `custom_description` visible en cards + página individual
+- Columna Código y botón Editar en Top 10 de Estadísticas
+- Cambio de tipografía en títulos de sección (Syne → DM Sans) para consistencia
+- Paginación corregida: parámetro `orden` en vez de `orderby` para evitar colisión con WP_Query
+
 ## v2.7.0 — Upsert por código de producto
 - Nuevo campo `ipc_product_code` — identificador único del producto en su marketplace (ASIN, etc.)
 - Upsert automático: si n8n envía `product_code` + `marketplace` + `country` y ya existe, actualiza en vez de duplicar
