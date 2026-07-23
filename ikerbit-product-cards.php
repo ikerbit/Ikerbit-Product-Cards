@@ -835,6 +835,8 @@ function ipc_ofertas_page() {
     $paged    = isset($_GET['paged'])   ? intval($_GET['paged'])          : 1;
     $orderby  = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'date';
     $order    = isset($_GET['order'])   ? ($_GET['order'] === 'ASC' ? 'ASC' : 'DESC') : 'DESC';
+    $search_field = isset($_GET['search_field']) ? sanitize_text_field($_GET['search_field']) : '';
+    $search_term  = isset($_GET['search_term'])  ? sanitize_text_field($_GET['search_term'])  : '';
 
     $query_args = [
         'post_type'      => 'ipc_oferta',
@@ -888,9 +890,11 @@ function ipc_ofertas_page() {
     $query = new WP_Query($query_args);
 
     // Helper para links de ordenación
-    $sort_url = function($col) use ($orderby, $order) {
+    $sort_url = function($col) use ($orderby, $order, $search_field, $search_term) {
         $new_order = ($orderby === $col && $order === 'ASC') ? 'DESC' : 'ASC';
-        return admin_url('admin.php?page=ipc-ofertas&orderby=' . $col . '&order=' . $new_order);
+        $url = admin_url('admin.php?page=ipc-ofertas&orderby=' . $col . '&order=' . $new_order);
+        if ($search_field && $search_term) $url .= '&search_field=' . urlencode($search_field) . '&search_term=' . urlencode($search_term);
+        return $url;
     };
     $sort_arrow = function($col) use ($orderby, $order) {
         if ($orderby !== $col) return '';
@@ -899,6 +903,21 @@ function ipc_ofertas_page() {
     ?>
     <div class="wrap">
         <h1>Todas las Ofertas <a href="<?php echo admin_url('admin.php?page=ipc-settings'); ?>" class="page-title-action">Ajustes</a></h1>
+        <form method="get" action="<?php echo admin_url('admin.php'); ?>" style="margin-bottom:16px;display:flex;gap:8px;align-items:center">
+            <input type="hidden" name="page" value="ipc-ofertas">
+            <select name="search_field" style="width:150px">
+                <option value="">— Buscar por —</option>
+                <?php
+                $search_fields = ['titulo' => 'Título', 'product_code' => 'Código', 'marketplace' => 'Marketplace', 'country' => 'País', 'categoria' => 'Categoría', 'marca' => 'Marca', 'producto' => 'Producto'];
+                foreach ($search_fields as $val => $label):
+                ?>
+                <option value="<?php echo $val; ?>" <?php selected($search_field, $val); ?>><?php echo $label; ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="text" name="search_term" value="<?php echo esc_attr($search_term); ?>" placeholder="Buscar..." style="width:220px">
+            <button type="submit" class="button">Buscar</button>
+            <a href="<?php echo admin_url('admin.php?page=ipc-ofertas'); ?>" class="button">Limpiar</a>
+        </form>
         <p>Total: <strong><?php echo $query->found_posts; ?></strong> ofertas</p>
         <table class="widefat striped">
             <thead>
@@ -939,6 +958,7 @@ function ipc_ofertas_page() {
                 $prod_terms   = get_the_terms($id, 'ipc_producto');
                 $prod_val     = (!empty($prod_terms) && !is_wp_error($prod_terms)) ? esc_html(mb_strimwidth($prod_terms[0]->name, 0, 20, '…')) : '—';
                 $delete_url   = admin_url('admin.php?page=ipc-ofertas&delete=' . $id . '&orderby=' . $orderby . '&order=' . $order);
+                if ($search_field && $search_term) $delete_url .= '&search_field=' . urlencode($search_field) . '&search_term=' . urlencode($search_term);
                 $currency_sym = ipc_currency_symbol(get_post_meta($id, 'ipc_currency', true) ?: 'EUR');
             ?>
                 <tr>
@@ -973,6 +993,7 @@ function ipc_ofertas_page() {
             echo '<div style="margin-top:16px">';
             for ($i = 1; $i <= $total_pages; $i++) {
                 $url = admin_url('admin.php?page=ipc-ofertas&paged=' . $i . '&orderby=' . $orderby . '&order=' . $order);
+                if ($search_field && $search_term) $url .= '&search_field=' . urlencode($search_field) . '&search_term=' . urlencode($search_term);
                 $style = $i === $paged ? 'font-weight:bold;text-decoration:underline' : '';
                 echo '<a href="' . $url . '" style="margin-right:6px;' . $style . '">' . $i . '</a>';
             }
@@ -1109,12 +1130,15 @@ function ipc_stats_page() {
             <div class="ipc-stat-box">
                 <h3>🔥 Top 10 ofertas por clicks</h3>
                 <table class="widefat striped" style="font-size:13px">
-                    <thead><tr><th>#</th><th>Oferta</th><th>Categoría</th><th>Marketplace</th><th>País</th><th style="text-align:center">Visitas</th><th style="text-align:center">Clicks</th><th style="text-align:center">CTR</th><th>Último click</th></tr></thead>
+                    <thead><tr><th>#</th><th>Oferta</th><th>Código</th><th>Categoría</th><th>Marketplace</th><th>País</th><th style="text-align:center">Visitas</th><th style="text-align:center">Clicks</th><th style="text-align:center">CTR</th><th></th></tr></thead>
                     <tbody>
-                    <?php foreach ($top10 as $i => $d): ?>
+                    <?php foreach ($top10 as $i => $d): 
+                        $pc = get_post_meta($d['id'], 'ipc_product_code', true) ?: '—';
+                    ?>
                     <tr>
                         <td style="color:#aaa;font-size:11px"><?php echo $i+1; ?></td>
                         <td><a href="<?php echo get_permalink($d['id']); ?>" target="_blank"><?php echo esc_html(mb_strimwidth($d['titulo'], 0, 45, '…')); ?></a></td>
+                        <td><code style="font-size:11px"><?php echo esc_html($pc); ?></code></td>
                         <td><?php echo esc_html($d['cat']); ?></td>
                         <td><?php echo esc_html($d['mp']); ?></td>
                         <td><code><?php echo esc_html($d['pais']); ?></code></td>
@@ -1125,10 +1149,10 @@ function ipc_stats_page() {
                             <span style="background:<?php echo $d['ctr'] >= 20 ? '#dcfce7' : ($d['ctr'] >= 10 ? '#fef9c3' : '#f3f4f6'); ?>;color:<?php echo $d['ctr'] >= 20 ? '#16a34a' : ($d['ctr'] >= 10 ? '#b45309' : '#555'); ?>;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:600"><?php echo $d['ctr']; ?>%</span>
                             <?php else: ?>—<?php endif; ?>
                         </td>
-                        <td style="font-size:11px;color:#999"><?php echo esc_html($d['ultimo']); ?></td>
+                        <td><a href="<?php echo admin_url('admin.php?page=ipc-edit&post_id=' . $d['id']); ?>" class="button button-small">Editar</a></td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php if (empty($top10)): ?><tr><td colspan="9">No hay datos todavía.</td></tr><?php endif; ?>
+                    <?php if (empty($top10)): ?><tr><td colspan="11">No hay datos todavía.</td></tr><?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -1384,7 +1408,31 @@ class IPC_Widget_Ofertas extends WP_Widget {
             ]];
         }
 
-        $query = new WP_Query($query_args);
+    if ($search_field && $search_term) {
+        if ($search_field === 'titulo') {
+            $query_args['s'] = $search_term;
+        } elseif ($search_field === 'product_code') {
+            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
+            $query_args['meta_query'][] = ['key' => 'ipc_product_code', 'value' => $search_term, 'compare' => 'LIKE'];
+        } elseif ($search_field === 'marketplace') {
+            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
+            $query_args['meta_query'][] = ['key' => 'ipc_marketplace', 'value' => $search_term, 'compare' => 'LIKE'];
+        } elseif ($search_field === 'country') {
+            if (!isset($query_args['meta_query'])) $query_args['meta_query'] = [];
+            $query_args['meta_query'][] = ['key' => 'ipc_country', 'value' => strtoupper($search_term)];
+        } elseif ($search_field === 'categoria') {
+            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
+            $query_args['tax_query'][] = ['taxonomy' => 'ipc_categoria', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
+        } elseif ($search_field === 'marca') {
+            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
+            $query_args['tax_query'][] = ['taxonomy' => 'ipc_marca', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
+        } elseif ($search_field === 'producto') {
+            if (!isset($query_args['tax_query'])) $query_args['tax_query'] = [];
+            $query_args['tax_query'][] = ['taxonomy' => 'ipc_producto', 'field' => 'slug', 'terms' => sanitize_title($search_term)];
+        }
+    }
+
+    $query = new WP_Query($query_args);
         if (!$query->have_posts()) return;
 
         echo $args['before_widget'];
