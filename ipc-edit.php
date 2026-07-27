@@ -27,7 +27,7 @@ function ipc_edit_save($post_id) {
     $campos_texto = [
         'ipc_precio', 'ipc_precio_old', 'ipc_descuento', 'ipc_url', 'ipc_img',
         'ipc_marketplace', 'ipc_rating', 'ipc_rating_count', 'ipc_stock',
-        'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_custom_description', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click',
+        'ipc_badge', 'ipc_fecha', 'ipc_descripcion', 'ipc_custom_description', 'ipc_visitas', 'ipc_clicks', 'ipc_ultimo_click', 'ipc_ultima_visita',
         'ipc_country', 'ipc_language', 'ipc_currency', 'ipc_product_code'
     ];
 
@@ -141,6 +141,7 @@ function ipc_edit_page() {
     $visitas      = get_post_meta($post_id, 'ipc_visitas', true);
     $clicks       = get_post_meta($post_id, 'ipc_clicks', true);
     $ultimo_click = get_post_meta($post_id, 'ipc_ultimo_click', true);
+    $ultima_visita = get_post_meta($post_id, 'ipc_ultima_visita', true);
     $country      = get_post_meta($post_id, 'ipc_country', true);
     $language     = get_post_meta($post_id, 'ipc_language', true);
     $currency     = get_post_meta($post_id, 'ipc_currency', true);
@@ -245,6 +246,7 @@ function ipc_edit_page() {
                             <?php ipc_field('Visitas', 'ipc_visitas', $visitas, 'number'); ?>
                             <?php ipc_field('Clicks', 'ipc_clicks', $clicks, 'number'); ?>
                             <?php ipc_field('Último click', 'ipc_ultimo_click', $ultimo_click); ?>
+                            <?php ipc_field('Última visita', 'ipc_ultima_visita', $ultima_visita); ?>
                         </div>
                     </div>
 
