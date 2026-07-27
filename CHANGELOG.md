@@ -36,6 +36,14 @@
 
 ---
 
+---
+
+## v2.7.2 — Última visita y priorización de actualizaciones
+- Nuevo campo `ipc_ultima_visita`: timestamp automático al visitar la página de oferta
+- KPI "Visitas hoy" en el dashboard de estadísticas
+- Columna "Última visita" en Todas las Ofertas (ordenable), Top 10 y Ofertas sin clicks
+- Editor: campo "Última visita" en la sección Estadísticas
+
 ## v2.7.1 — Buscador, duplicados, markdown y mejoras
 - Buscador desplegable en "Todas las Ofertas" por título, código, marketplace, país, categoría, marca y producto
 - Página de detección y limpieza de duplicados por URL (individual y masiva)
