@@ -98,6 +98,17 @@ add_action('rest_api_init', function() {
     }
 });
 
+// Permitir ordenar por meta fields en REST API
+add_filter('rest_ipc_oferta_query', function($args, $request) {
+    $orderby = $request->get_param('orderby');
+    $meta_orderby = ['ipc_precio', 'ipc_descuento', 'ipc_visitas', 'ipc_clicks', 'ipc_rating', 'ipc_fecha', 'ipc_country', 'ipc_product_code', 'ipc_ultima_visita'];
+    if (in_array($orderby, $meta_orderby)) {
+        $args['orderby']  = 'meta_value_num';
+        $args['meta_key'] = $orderby;
+    }
+    return $args;
+}, 10, 2);
+
 // ─────────────────────────────────────────
 // 3. ENDPOINT REST PERSONALIZADO DESDE N8N
 // ─────────────────────────────────────────
