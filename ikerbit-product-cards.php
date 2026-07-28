@@ -107,11 +107,35 @@ add_filter('rest_ipc_oferta_collection_params', function($params) use ($meta_ord
 });
 
 add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby) {
+    if ($request->get_param('all') == 1) {
+        $args['posts_per_page'] = 9999;
+        $args['nopaging'] = true;
+    }
+
     $orderby = $request->get_param('orderby');
     if (in_array($orderby, $meta_orderby)) {
         $args['orderby']  = 'meta_value_num';
         $args['meta_key'] = $orderby;
     }
+
+    $filtros = [
+        'ipc_visitas_min'  => ['key' => 'ipc_visitas', 'type' => 'NUMERIC'],
+        'ipc_clicks_min'   => ['key' => 'ipc_clicks', 'type' => 'NUMERIC'],
+        'ipc_ultima_visita_desde' => ['key' => 'ipc_ultima_visita'],
+    ];
+    foreach ($filtros as $param => $meta) {
+        $val = $request->get_param($param);
+        if ($val !== null && $val !== '') {
+            if (!isset($args['meta_query'])) $args['meta_query'] = [];
+            $args['meta_query'][] = [
+                'key'     => $meta['key'],
+                'value'   => $val,
+                'compare' => '>=',
+                'type'    => $meta['type'] ?? 'CHAR',
+            ];
+        }
+    }
+
     return $args;
 }, 10, 2);
 
