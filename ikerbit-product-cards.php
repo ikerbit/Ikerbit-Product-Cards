@@ -122,6 +122,7 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
         'ipc_visitas_min'  => ['key' => 'ipc_visitas', 'type' => 'NUMERIC'],
         'ipc_clicks_min'   => ['key' => 'ipc_clicks', 'type' => 'NUMERIC'],
         'ipc_ultima_visita_desde' => ['key' => 'ipc_ultima_visita'],
+        'ipc_ultima_visita_hasta' => ['key' => 'ipc_ultima_visita', 'compare' => '<='],
         'ipc_fecha_desde'  => ['key' => 'ipc_fecha'],
         'ipc_fecha_hasta'  => ['key' => 'ipc_fecha', 'compare' => '<='],
     ];
