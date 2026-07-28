@@ -143,6 +143,18 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
 }, 10, 2);
 
 // ─────────────────────────────────────────
+// 2c. PROTEGER LECTURA REST CON X-IPC-Secret
+// ─────────────────────────────────────────
+add_filter('rest_pre_dispatch', function($result, $server, $request) {
+    if (strpos($request->get_route(), '/wp/v2/ipc_oferta') === 0) {
+        if (!current_user_can('manage_options') && !ipc_check_secret($request)) {
+            return new WP_Error('rest_forbidden', 'X-IPC-Secret requerido', ['status' => 401]);
+        }
+    }
+    return $result;
+}, 10, 3);
+
+// ─────────────────────────────────────────
 // 3. ENDPOINT REST PERSONALIZADO DESDE N8N
 // ─────────────────────────────────────────
 add_action('rest_api_init', function() {
@@ -865,6 +877,39 @@ function ipc_settings_page() {
             'currency'     => 'EUR',
             'custom_description' => 'Descripción personalizada que sustituye a la original en la card.'
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)); ?></pre>
+
+        <h2>REST API Query Filters (GET)</h2>
+        <p><strong>Obtener ofertas:</strong> <code>GET <?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta</code></p>
+        <p><strong>Header requerido:</strong> <code>X-IPC-Secret: tu-secret</code></p>
+        <h3>Parámetros de filtro</h3>
+        <table class="widefat">
+            <thead><tr><th>Parámetro</th><th>Ejemplo</th><th>Descripción</th></tr></thead>
+            <tbody>
+                <tr><td><code>all</code></td><td><code>all=1</code></td><td>Devuelve todas las ofertas sin límite de paginación</td></tr>
+                <tr><td><code>orderby</code></td><td><code>orderby=ipc_clicks</code></td><td>Ordenar por: ipc_clicks, ipc_visitas, ipc_precio, ipc_descuento, ipc_fecha, ipc_rating, ipc_country, ipc_product_code, ipc_ultima_visita</td></tr>
+                <tr><td><code>order</code></td><td><code>order=desc</code></td><td>asc o desc</td></tr>
+                <tr><td><code>per_page</code></td><td><code>per_page=50</code></td><td>Número de resultados (máx 100)</td></tr>
+                <tr><td><code>ipc_visitas_min</code></td><td><code>ipc_visitas_min=5</code></td><td>Filtrar ofertas con ≥ N visitas</td></tr>
+                <tr><td><code>ipc_clicks_min</code></td><td><code>ipc_clicks_min=1</code></td><td>Filtrar ofertas con ≥ N clicks</td></tr>
+                <tr><td><code>ipc_fecha_desde</code></td><td><code>ipc_fecha_desde=2026-06-01</code></td><td>Ofertas publicadas desde fecha (≥)</td></tr>
+                <tr><td><code>ipc_fecha_hasta</code></td><td><code>ipc_fecha_hasta=2026-06-30</code></td><td>Ofertas publicadas hasta fecha (≤)</td></tr>
+                <tr><td><code>ipc_ultima_visita_desde</code></td><td><code>ipc_ultima_visita_desde=2026-07-01</code></td><td>Visitadas desde fecha (≥)</td></tr>
+                <tr><td><code>ipc_ultima_visita_hasta</code></td><td><code>ipc_ultima_visita_hasta=2026-07-15</code></td><td>Visitadas hasta fecha (≤)</td></tr>
+            </tbody>
+        </table>
+        <h3>Ejemplos</h3>
+        <table class="widefat" style="font-size:13px">
+            <thead><tr><th>Uso</th><th>URL</th></tr></thead>
+            <tbody>
+                <tr><td style="white-space:nowrap">Más clicadas</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?orderby=ipc_clicks&order=desc&per_page=50</code></td></tr>
+                <tr><td>Todas con ≥5 visitas</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_visitas_min=5</code></td></tr>
+                <tr><td>Todas con ≥1 click</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_min=1</code></td></tr>
+                <tr><td>Ofertas antiguas (>30 días)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_fecha_hasta=2026-06-01</code></td></tr>
+                <tr><td>Sin visitas en 15 días</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_ultima_visita_hasta=2026-07-01</code></td></tr>
+                <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">Combinación de filtros (ejemplo real)</td></tr>
+                <tr><td>Ofertas con ≥5 visitas, ≥1 click, publicadas hace ≥30 días, sin visitas recientes</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&orderby=ipc_clicks&order=desc&ipc_visitas_min=5&ipc_clicks_min=1&ipc_fecha_hasta=2026-06-01&ipc_ultima_visita_hasta=2026-07-01</code></td></tr>
+            </tbody>
+        </table>
     </div>
     <?php
 }
