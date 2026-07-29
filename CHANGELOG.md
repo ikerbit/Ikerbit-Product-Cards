@@ -40,6 +40,12 @@
 
 ---
 
+---
+
+## v2.7.3.1 — Fix paginación en REST API Query Filters
+- Corregido: `per_page` ahora tiene prioridad sobre `all=1` cuando ambos se usan juntos
+- Aclarada la descripción de `per_page` en la documentación de Ajustes
+
 ## v2.7.3 — REST API Query Filters y protección GET
 - Protección con `X-IPC-Secret` en peticiones GET a `/wp/v2/ipc_oferta`
 - Filtros avanzados en REST: `orderby` por campos meta (ipc_clicks, ipc_visitas, ipc_fecha...)
