@@ -910,7 +910,7 @@ function ipc_settings_page() {
                 <tr><td>Todas con ≥1 click</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_min=1</code></td></tr>
                 <tr><td>Ofertas con pocas visitas (≤10)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_visitas_max=10</code></td></tr>
                 <tr><td>Ofertas con pocos clicks (≤5)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_max=5</code></td></tr>
-                <tr><td>Ofertas sin visitas (0)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_visitas_max=0</code></td></tr>
+                <tr><td>Ofertas sin visitas y antiguas (≥90 días)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_visitas_max=0&ipc_fecha_hasta=2026-05-01</code></td></tr>
                 <tr><td>Ofertas sin clicks (0)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_max=0</code></td></tr>
                 <tr><td>Ofertas antiguas (>30 días)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_fecha_hasta=2026-06-01</code></td></tr>
                 <tr><td>Sin visitas en 15 días</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_ultima_visita_hasta=2026-07-01</code></td></tr>
