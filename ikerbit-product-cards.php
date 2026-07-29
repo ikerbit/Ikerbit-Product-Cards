@@ -120,7 +120,9 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
 
     $filtros = [
         'ipc_visitas_min'  => ['key' => 'ipc_visitas', 'type' => 'NUMERIC'],
+        'ipc_visitas_max'  => ['key' => 'ipc_visitas', 'type' => 'NUMERIC', 'compare' => '<='],
         'ipc_clicks_min'   => ['key' => 'ipc_clicks', 'type' => 'NUMERIC'],
+        'ipc_clicks_max'   => ['key' => 'ipc_clicks', 'type' => 'NUMERIC', 'compare' => '<='],
         'ipc_ultima_visita_desde' => ['key' => 'ipc_ultima_visita'],
         'ipc_ultima_visita_hasta' => ['key' => 'ipc_ultima_visita', 'compare' => '<='],
         'ipc_fecha_desde'  => ['key' => 'ipc_fecha'],
@@ -890,7 +892,9 @@ function ipc_settings_page() {
                 <tr><td><code>order</code></td><td><code>order=desc</code></td><td>asc o desc</td></tr>
                 <tr><td><code>per_page</code></td><td><code>per_page=50</code></td><td>Número de resultados (máx 100)</td></tr>
                 <tr><td><code>ipc_visitas_min</code></td><td><code>ipc_visitas_min=5</code></td><td>Filtrar ofertas con ≥ N visitas</td></tr>
+                <tr><td><code>ipc_visitas_max</code></td><td><code>ipc_visitas_max=10</code></td><td>Filtrar ofertas con ≤ N visitas</td></tr>
                 <tr><td><code>ipc_clicks_min</code></td><td><code>ipc_clicks_min=1</code></td><td>Filtrar ofertas con ≥ N clicks</td></tr>
+                <tr><td><code>ipc_clicks_max</code></td><td><code>ipc_clicks_max=5</code></td><td>Filtrar ofertas con ≤ N clicks</td></tr>
                 <tr><td><code>ipc_fecha_desde</code></td><td><code>ipc_fecha_desde=2026-06-01</code></td><td>Ofertas publicadas desde fecha (≥)</td></tr>
                 <tr><td><code>ipc_fecha_hasta</code></td><td><code>ipc_fecha_hasta=2026-06-30</code></td><td>Ofertas publicadas hasta fecha (≤)</td></tr>
                 <tr><td><code>ipc_ultima_visita_desde</code></td><td><code>ipc_ultima_visita_desde=2026-07-01</code></td><td>Visitadas desde fecha (≥)</td></tr>
@@ -904,6 +908,8 @@ function ipc_settings_page() {
                 <tr><td style="white-space:nowrap">Más clicadas</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?orderby=ipc_clicks&order=desc&per_page=50</code></td></tr>
                 <tr><td>Todas con ≥5 visitas</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_visitas_min=5</code></td></tr>
                 <tr><td>Todas con ≥1 click</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_min=1</code></td></tr>
+                <tr><td>Ofertas con pocas visitas (≤10)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_visitas_max=10</code></td></tr>
+                <tr><td>Ofertas con pocos clicks (≤5)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_max=5</code></td></tr>
                 <tr><td>Ofertas antiguas (>30 días)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_fecha_hasta=2026-06-01</code></td></tr>
                 <tr><td>Sin visitas en 15 días</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_ultima_visita_hasta=2026-07-01</code></td></tr>
                 <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">Combinación de filtros (ejemplo real)</td></tr>
