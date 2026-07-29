@@ -891,7 +891,7 @@ function ipc_settings_page() {
                 <tr><td><code>all</code></td><td><code>all=1</code></td><td>Devuelve todas las ofertas sin límite de paginación</td></tr>
                 <tr><td><code>orderby</code></td><td><code>orderby=ipc_clicks</code></td><td>Ordenar por: ipc_clicks, ipc_visitas, ipc_precio, ipc_descuento, ipc_fecha, ipc_rating, ipc_country, ipc_product_code, ipc_ultima_visita</td></tr>
                 <tr><td><code>order</code></td><td><code>order=desc</code></td><td>asc o desc</td></tr>
-                <tr><td><code>per_page</code></td><td><code>per_page=50</code></td><td>Número de resultados (máx 100)</td></tr>
+                <tr><td><code>per_page</code></td><td><code>per_page=50</code></td><td>Resultados por página (máx 100)</td></tr>
                 <tr><td><code>ipc_visitas_min</code></td><td><code>ipc_visitas_min=5</code></td><td>Filtrar ofertas con ≥ N visitas</td></tr>
                 <tr><td><code>ipc_visitas_max</code></td><td><code>ipc_visitas_max=10</code></td><td>Filtrar ofertas con ≤ N visitas</td></tr>
                 <tr><td><code>ipc_clicks_min</code></td><td><code>ipc_clicks_min=1</code></td><td>Filtrar ofertas con ≥ N clicks</td></tr>
