@@ -38,6 +38,15 @@
 
 ---
 
+---
+
+## v2.7.3 — REST API Query Filters y protección GET
+- Protección con `X-IPC-Secret` en peticiones GET a `/wp/v2/ipc_oferta`
+- Filtros avanzados en REST: `orderby` por campos meta (ipc_clicks, ipc_visitas, ipc_fecha...)
+- Parámetros `ipc_visitas_min/max`, `ipc_clicks_min/max`, `ipc_fecha_desde/hasta`, `ipc_ultima_visita_desde/hasta`
+- Parámetro `all=1` para obtener todas las ofertas sin límite de paginación
+- Sección "REST API Query Filters" en Ajustes con tabla de parámetros y ejemplos
+
 ## v2.7.2 — Última visita y priorización de actualizaciones
 - Nuevo campo `ipc_ultima_visita`: timestamp automático al visitar la página de oferta
 - KPI "Visitas hoy" en el dashboard de estadísticas
