@@ -100,13 +100,14 @@ add_action('rest_api_init', function() {
 
 // Permitir ordenar por meta fields en REST API
 $meta_orderby = ['ipc_precio', 'ipc_descuento', 'ipc_visitas', 'ipc_clicks', 'ipc_rating', 'ipc_fecha', 'ipc_country', 'ipc_product_code', 'ipc_ultima_visita'];
+$meta_orderby_string = ['ipc_fecha', 'ipc_country', 'ipc_product_code', 'ipc_ultima_visita'];
 
 add_filter('rest_ipc_oferta_collection_params', function($params) use ($meta_orderby) {
     $params['orderby']['enum'] = array_merge($params['orderby']['enum'], $meta_orderby);
     return $params;
 });
 
-add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby) {
+add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby, $meta_orderby_string) {
     if ($request->get_param('all') == 1) {
         $args['posts_per_page'] = 9999;
         $args['nopaging'] = true;
@@ -114,7 +115,7 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
 
     $orderby = $request->get_param('orderby');
     if (in_array($orderby, $meta_orderby)) {
-        $args['orderby']  = 'meta_value_num';
+        $args['orderby']  = in_array($orderby, $meta_orderby_string) ? 'meta_value' : 'meta_value_num';
         $args['meta_key'] = $orderby;
     }
 
