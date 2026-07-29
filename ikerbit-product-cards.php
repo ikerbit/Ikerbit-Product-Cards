@@ -108,7 +108,7 @@ add_filter('rest_ipc_oferta_collection_params', function($params) use ($meta_ord
 });
 
 add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby, $meta_orderby_string) {
-    if ($request->get_param('all') == 1) {
+    if ($request->get_param('all') == 1 && !$request->get_param('per_page')) {
         $args['posts_per_page'] = 9999;
         $args['nopaging'] = true;
     }
