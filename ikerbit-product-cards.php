@@ -142,6 +142,15 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
         }
     }
 
+    if ($request->get_param('custom_description_empty') == 1) {
+        if (!isset($args['meta_query'])) $args['meta_query'] = [];
+        $args['meta_query'][] = [
+            'relation' => 'OR',
+            ['key' => 'ipc_custom_description', 'compare' => 'NOT EXISTS'],
+            ['key' => 'ipc_custom_description', 'value' => ''],
+        ];
+    }
+
     return $args;
 }, 10, 2);
 
@@ -900,6 +909,7 @@ function ipc_settings_page() {
                 <tr><td><code>ipc_fecha_hasta</code></td><td><code>ipc_fecha_hasta=2026-06-30</code></td><td>Ofertas publicadas hasta fecha (≤)</td></tr>
                 <tr><td><code>ipc_ultima_visita_desde</code></td><td><code>ipc_ultima_visita_desde=2026-07-01</code></td><td>Visitadas desde fecha (≥)</td></tr>
                 <tr><td><code>ipc_ultima_visita_hasta</code></td><td><code>ipc_ultima_visita_hasta=2026-07-15</code></td><td>Visitadas hasta fecha (≤)</td></tr>
+                <tr><td><code>custom_description_empty</code></td><td><code>custom_description_empty=1</code></td><td>Ofertas sin descripción personalizada</td></tr>
             </tbody>
         </table>
         <h3>Ejemplos</h3>
@@ -915,6 +925,7 @@ function ipc_settings_page() {
                 <tr><td>Ofertas sin clicks (0)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_clicks_max=0</code></td></tr>
                 <tr><td>Ofertas antiguas (>30 días)</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_fecha_hasta=2026-06-01</code></td></tr>
                 <tr><td>Sin visitas en 15 días</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&ipc_ultima_visita_hasta=2026-07-01</code></td></tr>
+                <tr><td>Sin descripción personalizada</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&custom_description_empty=1</code></td></tr>
                 <tr><td colspan="2" style="background:#f9f9f9;font-weight:700;padding:8px 10px">Combinación de filtros (ejemplo real)</td></tr>
                 <tr><td>Ofertas con ≥5 visitas, ≥1 click, publicadas hace ≥30 días, sin visitas recientes</td><td><code><?php echo get_site_url(); ?>/wp-json/wp/v2/ipc_oferta?all=1&orderby=ipc_clicks&order=desc&ipc_visitas_min=5&ipc_clicks_min=1&ipc_fecha_hasta=2026-06-01&ipc_ultima_visita_hasta=2026-07-01</code></td></tr>
             </tbody>
