@@ -163,7 +163,7 @@ Semantic versioning is loosely followed:
 - **Minor** (0.x.0): new features, new fields, new endpoints
 - **Patch** (0.0.x): bug fixes
 
-Current version is **2.7.3.1**.
+Current version is **2.7.3.2**.
 
 ## Environment-Specific Configuration
 

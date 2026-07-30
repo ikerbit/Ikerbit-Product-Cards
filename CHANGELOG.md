@@ -42,6 +42,13 @@
 
 ---
 
+---
+
+## v2.7.3.2 — Filtros sin descripción y últimas visitas
+- Nuevo filtro `custom_description_empty=1` para ofertas sin descripción personalizada
+- Corregido `ipc_ultima_visita_hasta`: ahora incluye ofertas nunca visitadas (NOT EXISTS)
+- Corrección de ordenación: campos de fecha/texto usan `meta_value`
+
 ## v2.7.3.1 — Fix paginación en REST API Query Filters
 - Corregido: `per_page` ahora tiene prioridad sobre `all=1` cuando ambos se usan juntos
 - Aclarada la descripción de `per_page` en la documentación de Ajustes
