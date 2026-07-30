@@ -125,7 +125,6 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
         'ipc_clicks_min'   => ['key' => 'ipc_clicks', 'type' => 'NUMERIC'],
         'ipc_clicks_max'   => ['key' => 'ipc_clicks', 'type' => 'NUMERIC', 'compare' => '<='],
         'ipc_ultima_visita_desde' => ['key' => 'ipc_ultima_visita'],
-        'ipc_ultima_visita_hasta' => ['key' => 'ipc_ultima_visita', 'compare' => '<='],
         'ipc_fecha_desde'  => ['key' => 'ipc_fecha'],
         'ipc_fecha_hasta'  => ['key' => 'ipc_fecha', 'compare' => '<='],
     ];
@@ -148,6 +147,15 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
             'relation' => 'OR',
             ['key' => 'ipc_custom_description', 'compare' => 'NOT EXISTS'],
             ['key' => 'ipc_custom_description', 'value' => ''],
+        ];
+    }
+
+    if ($val = $request->get_param('ipc_ultima_visita_hasta')) {
+        if (!isset($args['meta_query'])) $args['meta_query'] = [];
+        $args['meta_query'][] = [
+            'relation' => 'OR',
+            ['key' => 'ipc_ultima_visita', 'value' => $val, 'compare' => '<=', 'type' => 'CHAR'],
+            ['key' => 'ipc_ultima_visita', 'compare' => 'NOT EXISTS'],
         ];
     }
 
