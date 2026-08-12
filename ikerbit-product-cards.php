@@ -159,6 +159,15 @@ add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby
         ];
     }
 
+    if ($request->get_param('ipc_visitas_max') === '0') {
+        if (!isset($args['meta_query'])) $args['meta_query'] = [];
+        $args['meta_query'][] = [
+            'relation' => 'OR',
+            ['key' => 'ipc_visitas', 'value' => '0', 'compare' => '<=', 'type' => 'NUMERIC'],
+            ['key' => 'ipc_visitas', 'compare' => 'NOT EXISTS'],
+        ];
+    }
+
     return $args;
 }, 10, 2);
 
