@@ -44,6 +44,12 @@
 
 ---
 
+---
+
+## v2.7.3.3 — Filtro de ofertas sin visitas
+- Corregido `ipc_visitas_max=0`: ahora incluye ofertas nunca visitadas (NOT EXISTS)
+- Permite filtrar ofertas antiguas sin ningún dato de visitas
+
 ## v2.7.3.2 — Filtros sin descripción y últimas visitas
 - Nuevo filtro `custom_description_empty=1` para ofertas sin descripción personalizada
 - Corregido `ipc_ultima_visita_hasta`: ahora incluye ofertas nunca visitadas (NOT EXISTS)
