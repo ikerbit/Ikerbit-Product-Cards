@@ -108,9 +108,13 @@ add_filter('rest_ipc_oferta_collection_params', function($params) use ($meta_ord
 });
 
 add_filter('rest_ipc_oferta_query', function($args, $request) use ($meta_orderby, $meta_orderby_string) {
-    if ($request->get_param('all') == 1 && !$request->get_param('per_page')) {
-        $args['posts_per_page'] = 9999;
+    $all = $request->get_param('all');
+    $explicit_per_page = array_key_exists('per_page', $request->get_query_params());
+
+    if ($all == 1 && !$explicit_per_page) {
         $args['nopaging'] = true;
+        unset($args['posts_per_page']);
+        unset($args['paged']);
     }
 
     $orderby = $request->get_param('orderby');
