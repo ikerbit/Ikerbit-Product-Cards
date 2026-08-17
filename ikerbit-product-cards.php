@@ -884,6 +884,9 @@ function ipc_settings_page() {
                 <tr><td><code>[ofertas marca="logitech" marketplace="amazon" condescuento="si" limite="4" layout="horizontal"]</code></td><td>Marca + marketplace + con descuento</td></tr>
                 <tr><td><code>[ofertas producto="iphone*" categoria="smartphones" limite="4" layout="grid"]</code></td><td>Wildcard — todos los productos que empiezan por "iphone"</td></tr>
                 <tr><td><code>[ofertas buscar="raspberry" limite="6" layout="grid"]</code></td><td>Búsqueda en el título — productos que contengan "raspberry"</td></tr>
+                <tr><td><code>[ofertas buscar="auriculares" layout="horizontal" limite="4"]</code></td><td>Búsqueda en fila horizontal</td></tr>
+                <tr><td><code>[ofertas buscar="samsung" marketplace="amazon" limite="6"]</code></td><td>Búsqueda + filtro por marketplace</td></tr>
+                <tr><td><code>[ofertas buscar="tablet" country="auto" limite="6" layout="grid"]</code></td><td>Búsqueda + país del visitante</td></tr>
             </tbody>
         </table>
         <h2>Endpoint n8n</h2>
