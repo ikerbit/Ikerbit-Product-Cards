@@ -46,6 +46,12 @@
 
 ---
 
+---
+
+## v2.7.3.4 — Búsqueda por título en shortcodes
+- Nuevo atributo `buscar` en `[ofertas]` para buscar productos por título
+- Corrección: `all=1` en REST ahora devuelve todas las ofertas correctamente
+
 ## v2.7.3.3 — Filtro de ofertas sin visitas
 - Corregido `ipc_visitas_max=0`: ahora incluye ofertas nunca visitadas (NOT EXISTS)
 - Permite filtrar ofertas antiguas sin ningún dato de visitas
