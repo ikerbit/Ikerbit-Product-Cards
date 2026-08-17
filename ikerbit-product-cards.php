@@ -555,6 +555,7 @@ function ipc_shortcode_grid($atts) {
         'condescuento' => '',
         'country'      => '',
         'product_code' => '',
+        'buscar'       => '',
     ], $atts);
 
     $args = [
@@ -565,6 +566,10 @@ function ipc_shortcode_grid($atts) {
     ];
 
     $meta_query = ['relation' => 'AND'];
+
+    if ($atts['buscar']) {
+        $args['s'] = sanitize_text_field($atts['buscar']);
+    }
 
     if ($atts['orderby'] === 'descuento') {
         $args['orderby']  = 'meta_value_num';
@@ -878,6 +883,7 @@ function ipc_settings_page() {
                 <tr><td><code>[ofertas marca="apple" categoria="smartphones" limite="6" layout="grid"]</code></td><td>Marca + categoría combinadas</td></tr>
                 <tr><td><code>[ofertas marca="logitech" marketplace="amazon" condescuento="si" limite="4" layout="horizontal"]</code></td><td>Marca + marketplace + con descuento</td></tr>
                 <tr><td><code>[ofertas producto="iphone*" categoria="smartphones" limite="4" layout="grid"]</code></td><td>Wildcard — todos los productos que empiezan por "iphone"</td></tr>
+                <tr><td><code>[ofertas buscar="raspberry" limite="6" layout="grid"]</code></td><td>Búsqueda en el título — productos que contengan "raspberry"</td></tr>
             </tbody>
         </table>
         <h2>Endpoint n8n</h2>
