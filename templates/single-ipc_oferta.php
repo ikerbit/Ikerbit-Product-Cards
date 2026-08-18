@@ -69,7 +69,7 @@ while (have_posts()) : the_post();
 .ipc-single__img-main { background: #fff; border: 1px solid #f0f0f0; border-radius: 16px; display: flex; align-items: center; justify-content: center; padding: 32px; min-height: 320px; position: relative; overflow: hidden; }
 .ipc-single__img-main img { max-height: 280px; max-width: 100%; object-fit: contain; }
 .ipc-single__badge { position: absolute; top: 14px; left: 14px; background: #111; color: #fff; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; }
-.ipc-single__discount { position: absolute; top: 14px; right: 14px; background: #ff3b30; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; line-height: 1.2; padding: 5px 10px; border-radius: 8px; }
+.ipc-single__discount { position: absolute; top: 14px; right: 14px; background: #ff3b30; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 800; line-height: 1.2; padding: 7px 14px; border-radius: 10px; }
 .ipc-single__thumbs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .ipc-single__thumb { width: 64px; height: 64px; background: #fff; border-radius: 8px; border: 2px solid #f0f0f0; cursor: pointer; overflow: hidden; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s; }
 .ipc-single__thumb:hover, .ipc-single__thumb.active { border-color: #111; }
@@ -84,8 +84,8 @@ while (have_posts()) : the_post();
 .ipc-single__rating-count { font-size: 13px; color: #999; }
 .ipc-single__price-wrap { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .ipc-single__price { font-family: 'DM Sans', sans-serif; font-size: 36px; font-weight: 800; color: #111; line-height: 1; }
-.ipc-single__price-old { font-size: 18px; color: #bbb; text-decoration: line-through; }
-.ipc-single__saving { font-size: 13px; font-weight: 600; color: #16a34a; }
+.ipc-single__price-old { font-size: 22px; color: #bbb; text-decoration: line-through; }
+.ipc-single__saving { font-size: 16px; font-weight: 700; color: #16a34a; }
 .ipc-single__btn { display: block; text-align: center; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 16px; padding: 16px 24px; border-radius: 12px; text-decoration: none !important; color: #fff !important; background: <?php echo esc_attr($btn_color); ?>; transition: opacity 0.18s; margin-top: 8px; }
 .ipc-single__btn:hover { opacity: 0.88; }
 .ipc-single__disclaimer { font-size: 11px; color: #bbb; text-align: center; margin-top: -8px; }
