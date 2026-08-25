@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.3.4
+ * Version: 2.7.4
  * Author: Ikerbit
  */
 
@@ -22,6 +22,35 @@ function ipc_render_markdown($text) {
     $pd->setMarkupEscaped(true);
     return $pd->text($text);
 }
+
+// Meta description para la pagina de oferta si no hay Yoast SEO activo.
+add_action('wp_head', function() {
+    if (!is_singular('ipc_oferta') || defined('WPSEO_VERSION')) return;
+    $desc = get_post_meta(get_the_ID(), '_yoast_wpseo_metadesc', true);
+    if ($desc) echo '<meta name="description" content="' . esc_attr($desc) . '">' . "
+";
+});
+
+// Sitemap de ofertas en /sitemap-ofertas.xml (indexacion de las paginas de oferta).
+add_action('init', function() {
+    add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
+});
+add_filter('query_vars', function($vars) { $vars[] = 'ipc_sitemap'; return $vars; });
+add_action('template_redirect', function() {
+    if (get_query_var('ipc_sitemap') !== '1') return;
+    header('Content-Type: application/xml; charset=utf-8');
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "
+";
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "
+";
+    $posts = get_posts(['post_type' => 'ipc_oferta', 'post_status' => 'publish', 'numberposts' => -1]);
+    foreach ($posts as $p) {
+        echo '<url><loc>' . esc_url(get_permalink($p)) . '</loc></url>' . "
+";
+    }
+    echo '</urlset>';
+    exit;
+});
 
 // ─────────────────────────────────────────
 // 1. CUSTOM POST TYPE: oferta
@@ -297,6 +326,13 @@ function ipc_guardar_meta($post_id, $p) {
     }
     if (isset($p['custom_description'])) {
         update_post_meta($post_id, 'ipc_custom_description', wp_kses_post($p['custom_description']));
+    }
+
+    if (isset($p['seo_title'])) {
+        update_post_meta($post_id, '_yoast_wpseo_title', sanitize_text_field($p['seo_title']));
+    }
+    if (isset($p['seo_metadesc'])) {
+        update_post_meta($post_id, '_yoast_wpseo_metadesc', sanitize_text_field($p['seo_metadesc']));
     }
     if (isset($p['country'])) {
         update_post_meta($post_id, 'ipc_country', strtoupper(sanitize_text_field($p['country'])));
@@ -706,7 +742,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.3.4'
+        '2.7.4'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -799,7 +835,7 @@ function ipc_settings_page() {
     $auto_filter     = get_option('ipc_auto_filter_country', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.3.4</h1>
+        <h1>Ikerbit Product Cards v2.7.4</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">

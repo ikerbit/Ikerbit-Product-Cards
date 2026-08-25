@@ -22,31 +22,10 @@
 
 ---
 
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
-
----
+## v2.7.4 — SEO y sitemap de ofertas
+- Meta description en páginas de oferta si no hay Yoast SEO activo
+- Sitemap de ofertas en `/sitemap-ofertas.xml`
+- Soporte de campos SEO (`seo_title`, `seo_metadesc`) desde la API REST
 
 ## v2.7.3.4 — Búsqueda por título en shortcodes
 - Nuevo atributo `buscar` en `[ofertas]` para buscar productos por título
