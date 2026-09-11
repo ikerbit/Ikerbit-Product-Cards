@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.4
+ * Version: 2.7.5
  * Author: Ikerbit
  */
 
@@ -410,7 +410,12 @@ function ipc_crear_oferta($request) {
         }
         if (!empty($existing)) {
             $post_id = $existing[0];
-            wp_update_post(['ID' => $post_id, 'post_title' => sanitize_text_field($p['titulo'])]);
+            $titulo = sanitize_text_field($p['titulo']);
+            $post_arr = ['ID' => $post_id, 'post_title' => $titulo];
+            if (!empty($p['regenerar_slug'])) {
+                $post_arr['post_name'] = sanitize_title($titulo);
+            }
+            wp_update_post($post_arr);
             ipc_guardar_meta($post_id, $p);
             return rest_ensure_response(['success' => true, 'post_id' => $post_id, 'updated' => true, 'url' => get_permalink($post_id)]);
         }
@@ -445,7 +450,12 @@ function ipc_actualizar_oferta($request) {
     $p = $request->get_json_params();
 
     if (!empty($p['titulo'])) {
-        wp_update_post(['ID' => $post_id, 'post_title' => sanitize_text_field($p['titulo'])]);
+        $titulo = sanitize_text_field($p['titulo']);
+        $post_arr = ['ID' => $post_id, 'post_title' => $titulo];
+        if (!empty($p['regenerar_slug'])) {
+            $post_arr['post_name'] = sanitize_title($titulo);
+        }
+        wp_update_post($post_arr);
     }
     ipc_guardar_meta($post_id, $p);
     return rest_ensure_response(['success' => true, 'post_id' => $post_id, 'updated' => true, 'url' => get_permalink($post_id)]);
@@ -742,7 +752,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.4'
+        '2.7.5'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -835,7 +845,7 @@ function ipc_settings_page() {
     $auto_filter     = get_option('ipc_auto_filter_country', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.4</h1>
+        <h1>Ikerbit Product Cards v2.7.5</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
