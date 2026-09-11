@@ -10,6 +10,8 @@ while (have_posts()) : the_post();
     $titulo       = get_the_title();
     $precio       = str_replace('.', ',', get_post_meta($post_id, 'ipc_precio', true));
     $precio_old   = str_replace('.', ',', get_post_meta($post_id, 'ipc_precio_old', true));
+    $precio_raw   = get_post_meta($post_id, 'ipc_precio', true);
+    $stock        = get_post_meta($post_id, 'ipc_stock', true);
     $descuento    = get_post_meta($post_id, 'ipc_descuento', true);
     $url          = get_post_meta($post_id, 'ipc_url', true);
     $img          = get_post_meta($post_id, 'ipc_img', true);
@@ -54,7 +56,7 @@ while (have_posts()) : the_post();
   <?php if ($img): ?>"image": "<?php echo esc_url($img); ?>",<?php endif; ?>
   <?php if ($descripcion): ?>"description": "<?php echo esc_js(strip_tags($descripcion)); ?>",<?php endif; ?>
   <?php if ($rating): ?>"aggregateRating": { "@type": "AggregateRating", "ratingValue": "<?php echo $rating; ?>", "reviewCount": "<?php echo intval($rating_count) ?: 1; ?>" },<?php endif; ?>
-  "offers": { "@type": "Offer", "url": "<?php echo esc_url($url); ?>", "priceCurrency": "EUR", "price": "<?php echo esc_attr($precio); ?>", "availability": "https://schema.org/InStock" }
+  "offers": { "@type": "Offer", "url": "<?php echo esc_url($url); ?>", "priceCurrency": "<?php echo esc_attr(strtoupper($currency)); ?>", "price": "<?php echo esc_attr($precio_raw); ?>", "availability": "<?php echo ($stock !== '0') ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'; ?>" }
 }
 </script>
 
