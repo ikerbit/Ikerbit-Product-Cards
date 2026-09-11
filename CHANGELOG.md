@@ -22,6 +22,11 @@
 
 ---
 
+## v2.7.6 — JSON-LD con estrellas y precio opcional
+- JSON-LD `Product` prioriza `aggregateRating` (estrellas) por defecto
+- Nuevo ajuste "Mostrar precio en marcado estructurado" (precio desactivado por defecto)
+- Marcado reescrito con `wp_json_encode` — corrige comas sobrantes y entidades HTML en el nombre
+
 ## v2.7.5 — Regeneración de slug en update
 - Al actualizar una oferta, si el payload trae `regenerar_slug`, se regenera el `post_name` a partir del nuevo título (`sanitize_title`)
 - Permite acortar título (H1) y slug desde la API al republicar/redistribuir ofertas
