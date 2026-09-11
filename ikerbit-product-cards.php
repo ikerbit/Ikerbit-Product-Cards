@@ -819,6 +819,7 @@ function ipc_settings_page() {
         update_option('ipc_ga4_enabled', isset($_POST['ipc_ga4_enabled']) ? 1 : 0);
         update_option('ipc_default_country', strtoupper(sanitize_text_field($_POST['ipc_default_country'] ?? 'ES')));
         update_option('ipc_auto_filter_country', isset($_POST['ipc_auto_filter_country']) ? 1 : 0);
+        update_option('ipc_markup_price', isset($_POST['ipc_markup_price']) ? 1 : 0);
 
         // Si se activa como portada, configurar WordPress automáticamente
         if (isset($_POST['ipc_home_enabled'])) {
@@ -843,6 +844,7 @@ function ipc_settings_page() {
     $ga4_enabled   = get_option('ipc_ga4_enabled', 0);
     $default_country = get_option('ipc_default_country', 'ES');
     $auto_filter     = get_option('ipc_auto_filter_country', 0);
+    $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
         <h1>Ikerbit Product Cards v2.7.5</h1>
@@ -884,6 +886,16 @@ function ipc_settings_page() {
                             Filtrar ofertas automáticamente según el país del visitante
                         </label>
                         <p class="description">Si se activa, los shortcodes sin atributo <code>country</code> filtrarán automáticamente. Usa <code>country="auto"</code> para filtrar en shortcodes individuales.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Marcado estructurado (JSON-LD)</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" name="ipc_markup_price" value="1" <?php checked($markup_price, 1); ?>>
+                            Mostrar precio en el marcado estructurado
+                        </label>
+                        <p class="description">Por defecto el JSON-LD muestra nombre, imagen, descripción y valoraciones (estrellas). Activa esta opción para incluir también el precio, la moneda y la disponibilidad. En afiliación las estrellas suelen funcionar mejor que el precio en el SERP.</p>
                     </td>
                 </tr>
                     <td>

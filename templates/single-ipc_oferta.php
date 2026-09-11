@@ -48,17 +48,32 @@ while (have_posts()) : the_post();
     $currency_sym = ipc_currency_symbol($currency);
 ?>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org/",
-  "@type": "Product",
-  "name": "<?php echo esc_js($titulo); ?>",
-  <?php if ($img): ?>"image": "<?php echo esc_url($img); ?>",<?php endif; ?>
-  <?php if ($descripcion): ?>"description": "<?php echo esc_js(strip_tags($descripcion)); ?>",<?php endif; ?>
-  <?php if ($rating): ?>"aggregateRating": { "@type": "AggregateRating", "ratingValue": "<?php echo $rating; ?>", "reviewCount": "<?php echo intval($rating_count) ?: 1; ?>" },<?php endif; ?>
-  "offers": { "@type": "Offer", "url": "<?php echo esc_url($url); ?>", "priceCurrency": "<?php echo esc_attr(strtoupper($currency)); ?>", "price": "<?php echo esc_attr($precio_raw); ?>", "availability": "<?php echo ($stock !== '0') ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'; ?>" }
+<?php
+$schema = [
+    '@context' => 'https://schema.org/',
+    '@type'    => 'Product',
+    'name'     => html_entity_decode($titulo, ENT_QUOTES, 'UTF-8'),
+];
+if ($img)         $schema['image'] = $img;
+if ($descripcion) $schema['description'] = strip_tags($descripcion);
+if ($rating) {
+    $schema['aggregateRating'] = [
+        '@type'       => 'AggregateRating',
+        'ratingValue' => $rating,
+        'reviewCount' => intval($rating_count) ?: 1,
+    ];
 }
-</script>
+if (get_option('ipc_markup_price', 0)) {
+    $schema['offers'] = [
+        '@type'         => 'Offer',
+        'url'           => $url,
+        'priceCurrency' => strtoupper($currency),
+        'price'         => $precio_raw,
+        'availability'  => ($stock !== '0') ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+    ];
+}
+?>
+<script type="application/ld+json"><?php echo wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script>
 
 <style>
 .ipc-single { max-width: 1200px; margin: 32px auto; padding: 0 16px; font-family: 'DM Sans', sans-serif; }
