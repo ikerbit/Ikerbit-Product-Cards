@@ -64,13 +64,16 @@ if ($rating) {
     ];
 }
 if (get_option('ipc_markup_price', 0)) {
-    $schema['offers'] = [
-        '@type'         => 'Offer',
-        'url'           => $url,
-        'priceCurrency' => strtoupper($currency),
-        'price'         => $precio_raw,
-        'availability'  => ($stock !== '0') ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-    ];
+    $precio = is_numeric($precio_raw) ? (float) $precio_raw : 0.0;
+    if ($precio > 0) {
+        $schema['offers'] = [
+            '@type'         => 'Offer',
+            'url'           => $url,
+            'priceCurrency' => strtoupper($currency),
+            'price'         => $precio,
+            'availability'  => ($stock !== '0') ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        ];
+    }
 }
 ?>
 <script type="application/ld+json"><?php echo wp_json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script>

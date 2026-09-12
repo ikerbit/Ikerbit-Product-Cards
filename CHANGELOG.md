@@ -22,6 +22,13 @@
 
 ---
 
+---
+
+## v2.7.6.1 — Fix precio inválido en JSON-LD
+- Valida el precio antes de emitir `offers` en el marcado estructurado
+- Ofertas sin precio (null, vacío, coma decimal o 0) omiten el bloque `offers` — evita errores de Google Search Console
+- `price` se emite como número flotante, no string
+
 ## v2.7.6 — JSON-LD con estrellas y precio opcional
 - JSON-LD `Product` prioriza `aggregateRating` (estrellas) por defecto
 - Nuevo ajuste "Mostrar precio en marcado estructurado" (precio desactivado por defecto)
