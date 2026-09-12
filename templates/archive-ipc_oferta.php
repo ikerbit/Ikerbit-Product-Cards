@@ -95,9 +95,10 @@ $categorias = get_terms(['taxonomy' => 'ipc_categoria', 'hide_empty' => true, 'o
 .ipc-archive__filter-btn:hover, .ipc-archive__filter-btn.active { background: #111; color: #fff; border-color: #111; }
 
 /* PAGINACIÓN */
-.ipc-archive__pagination { display: flex; gap: 8px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+.ipc-archive__pagination { display: flex; gap: 8px; justify-content: center; margin-top: 40px; flex-wrap: wrap; align-items: center; }
 .ipc-archive__page-btn { font-size: 13px; font-weight: 600; padding: 8px 14px; border-radius: 8px; border: 1px solid #e0e0e0; background: #fff; text-decoration: none; color: #555; transition: all 0.15s; }
 .ipc-archive__page-btn:hover, .ipc-archive__page-btn.current { background: #111; color: #fff; border-color: #111; }
+.ipc-archive__page-info { font-size: 13px; color: #888; padding: 0 6px; }
 .ipc-archive__empty { text-align: center; padding: 60px 20px; color: #999; font-size: 16px; }
 </style>
 
@@ -148,12 +149,13 @@ $categorias = get_terms(['taxonomy' => 'ipc_categoria', 'hide_empty' => true, 'o
     if ($total_pages > 1):
     ?>
     <div class="ipc-archive__pagination">
-        <?php for ($i = 1; $i <= $total_pages; $i++):
-            $url     = add_query_arg(['paged' => $i, 'orden' => $orderby], home_url('/ofertas/'));
-            $current = $i === $paged ? ' current' : '';
-        ?>
-        <a href="<?php echo esc_url($url); ?>" class="ipc-archive__page-btn<?php echo $current; ?>"><?php echo $i; ?></a>
-        <?php endfor; ?>
+        <?php if ($paged > 1): ?>
+        <a href="<?php echo esc_url(add_query_arg(['paged' => $paged - 1, 'orden' => $orderby], home_url('/ofertas/'))); ?>" class="ipc-archive__page-btn">← Anterior</a>
+        <?php endif; ?>
+        <span class="ipc-archive__page-info">Página <?php echo $paged; ?> de <?php echo $total_pages; ?></span>
+        <?php if ($paged < $total_pages): ?>
+        <a href="<?php echo esc_url(add_query_arg(['paged' => $paged + 1, 'orden' => $orderby], home_url('/ofertas/'))); ?>" class="ipc-archive__page-btn">Siguiente →</a>
+        <?php endif; ?>
     </div>
     <?php endif; ?>
 
