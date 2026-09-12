@@ -28,6 +28,12 @@
 
 ---
 
+---
+
+## v2.7.6.4 — Paginación Anterior/Siguiente y fix de avance
+- Paginación sustituida por botones "← Anterior" / "Siguiente →" + indicador "Página X de Y"
+- Corregido el avance de página: se lee `$_GET['paged']` (antes `get_query_var('paged')` devolvía 0 en página estática)
+
 ## v2.7.6.3 — Fix separador decimal en "Ahorras"
 - "Ahorras" ahora usa coma decimal y calcula con el precio crudo (corrige pérdida de decimales)
 
