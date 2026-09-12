@@ -5,7 +5,7 @@
  */
 get_header();
 
-$paged    = get_query_var('paged') ?: 1;
+$paged    = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
 $orderby  = $_GET['orden'] ?? 'date';
 
 $query_args = [

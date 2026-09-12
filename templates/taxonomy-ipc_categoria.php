@@ -8,7 +8,7 @@ get_header();
 $term        = get_queried_object();
 $term_name   = $term ? ucfirst($term->name) : 'Ofertas';
 $term_desc   = $term ? term_description($term) : '';
-$paged       = get_query_var('paged') ?: 1;
+$paged       = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
 
 $base_args = [
     'post_type'      => 'ipc_oferta',
