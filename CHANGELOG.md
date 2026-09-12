@@ -24,6 +24,12 @@
 
 ---
 
+---
+
+## v2.7.6.2 — Redirección 301 por cambio de slug
+- Al cambiar el slug de una oferta (`regenerar_slug`), se guarda el slug viejo en `_ipc_old_slug`
+- Redirección 301 automática de URLs antiguas (404) hacia la URL actual
+
 ## v2.7.6.1 — Fix precio inválido en JSON-LD
 - Valida el precio antes de emitir `offers` en el marcado estructurado
 - Ofertas sin precio (null, vacío, coma decimal o 0) omiten el bloque `offers` — evita errores de Google Search Console
