@@ -11,6 +11,7 @@ while (have_posts()) : the_post();
     $precio       = str_replace('.', ',', get_post_meta($post_id, 'ipc_precio', true));
     $precio_old   = str_replace('.', ',', get_post_meta($post_id, 'ipc_precio_old', true));
     $precio_raw   = get_post_meta($post_id, 'ipc_precio', true);
+    $precio_old_raw = get_post_meta($post_id, 'ipc_precio_old', true);
     $stock        = get_post_meta($post_id, 'ipc_stock', true);
     $descuento    = get_post_meta($post_id, 'ipc_descuento', true);
     $url          = get_post_meta($post_id, 'ipc_url', true);
@@ -171,8 +172,8 @@ if (get_option('ipc_markup_price', 0)) {
             <div class="ipc-single__price-wrap">
                 <span class="ipc-single__price"><?php echo esc_html($precio); ?><?php echo $currency_sym; ?></span>
                 <?php if ($precio_old): ?><span class="ipc-single__price-old"><?php echo esc_html($precio_old); ?><?php echo $currency_sym; ?></span><?php endif; ?>
-                <?php if ($precio && $precio_old && floatval($precio_old) > floatval($precio)):
-                    $ahorro = number_format(floatval($precio_old) - floatval($precio), 2); ?>
+                <?php if ($precio_raw && $precio_old_raw && floatval($precio_old_raw) > floatval($precio_raw)):
+                    $ahorro = number_format(floatval($precio_old_raw) - floatval($precio_raw), 2, ',', '.'); ?>
                     <span class="ipc-single__saving">Ahorras <?php echo $ahorro; ?>€</span>
                 <?php endif; ?>
             </div>
