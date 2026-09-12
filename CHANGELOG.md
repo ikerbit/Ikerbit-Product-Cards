@@ -26,6 +26,11 @@
 
 ---
 
+---
+
+## v2.7.6.3 — Fix separador decimal en "Ahorras"
+- "Ahorras" ahora usa coma decimal y calcula con el precio crudo (corrige pérdida de decimales)
+
 ## v2.7.6.2 — Redirección 301 por cambio de slug
 - Al cambiar el slug de una oferta (`regenerar_slug`), se guarda el slug viejo en `_ipc_old_slug`
 - Redirección 301 automática de URLs antiguas (404) hacia la URL actual
