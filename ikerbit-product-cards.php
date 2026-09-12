@@ -52,6 +52,36 @@ add_action('template_redirect', function() {
     exit;
 });
 
+// Redirige 301 las URLs de ofertas cuyo slug ha cambiado.
+function ipc_redirect_old_slugs() {
+    if (!is_404()) {
+        return;
+    }
+
+    $slug = basename(untrailingslashit(wp_parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)));
+    if (!$slug) {
+        return;
+    }
+
+    $posts = get_posts([
+        'post_type'      => 'ipc_oferta',
+        'posts_per_page' => 1,
+        'post_status'    => 'any',
+        'meta_key'       => '_ipc_old_slug',
+        'meta_value'     => $slug,
+        'fields'         => 'ids',
+    ]);
+
+    if (!empty($posts)) {
+        $url = get_permalink($posts[0]);
+        if ($url) {
+            wp_redirect($url, 301);
+            exit;
+        }
+    }
+}
+add_action('template_redirect', 'ipc_redirect_old_slugs');
+
 // ─────────────────────────────────────────
 // 1. CUSTOM POST TYPE: oferta
 // ─────────────────────────────────────────
@@ -413,7 +443,12 @@ function ipc_crear_oferta($request) {
             $titulo = sanitize_text_field($p['titulo']);
             $post_arr = ['ID' => $post_id, 'post_title' => $titulo];
             if (!empty($p['regenerar_slug'])) {
-                $post_arr['post_name'] = sanitize_title($titulo);
+                $new_slug = sanitize_title($titulo);
+                $old_slug = get_post_field('post_name', $post_id);
+                if ($old_slug && $old_slug !== $new_slug) {
+                    add_post_meta($post_id, '_ipc_old_slug', $old_slug);
+                }
+                $post_arr['post_name'] = $new_slug;
             }
             wp_update_post($post_arr);
             ipc_guardar_meta($post_id, $p);
@@ -453,7 +488,12 @@ function ipc_actualizar_oferta($request) {
         $titulo = sanitize_text_field($p['titulo']);
         $post_arr = ['ID' => $post_id, 'post_title' => $titulo];
         if (!empty($p['regenerar_slug'])) {
-            $post_arr['post_name'] = sanitize_title($titulo);
+            $new_slug = sanitize_title($titulo);
+            $old_slug = get_post_field('post_name', $post_id);
+            if ($old_slug && $old_slug !== $new_slug) {
+                add_post_meta($post_id, '_ipc_old_slug', $old_slug);
+            }
+            $post_arr['post_name'] = $new_slug;
         }
         wp_update_post($post_arr);
     }
