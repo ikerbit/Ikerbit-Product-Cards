@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.6.4
+ * Version: 2.7.6.5
  * Author: Ikerbit
  */
 
@@ -44,7 +44,31 @@ add_action('wp_head', function() {
 add_action('init', function() {
     add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
 });
+
 add_filter('query_vars', function($vars) { $vars[] = 'ipc_sitemap'; return $vars; });
+
+// Flush automático del rewrite al activar o al cambiar de versión.
+register_activation_hook(__FILE__, function() {
+    add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
+    flush_rewrite_rules();
+});
+
+add_action('init', function() {
+    if (get_option('ipc_rewrite_version') !== '2.7.6.5') {
+        add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
+        flush_rewrite_rules();
+        update_option('ipc_rewrite_version', '2.7.6.5');
+    }
+}, 99);
+
+// Evita que redirect_canonical añada barra final a /sitemap-ofertas.xml.
+add_filter('redirect_canonical', function($redirect_url, $requested_url) {
+    if (strpos($requested_url, 'sitemap-ofertas.xml') !== false) {
+        return false;
+    }
+    return $redirect_url;
+}, 10, 2);
+
 add_action('template_redirect', function() {
     if (get_query_var('ipc_sitemap') !== '1') return;
     header('Content-Type: application/xml; charset=utf-8');
@@ -808,7 +832,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.6.4'
+        '2.7.6.5'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -903,7 +927,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.6.4</h1>
+        <h1>Ikerbit Product Cards v2.7.6.5</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">

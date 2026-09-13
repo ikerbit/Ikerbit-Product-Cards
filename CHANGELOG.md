@@ -22,13 +22,10 @@
 
 ---
 
----
-
----
-
----
-
----
+## v2.7.6.5 — Noindex thin content y sitemap filtrado
+- `noindex` en ofertas sin `custom_description` (contenido thin)
+- Sitemap `/sitemap-ofertas.xml` solo lista ofertas con `custom_description`
+- Fix del rewrite rule del sitemap: flush automático al activar/actualizar el plugin
 
 ## v2.7.6.4 — Paginación Anterior/Siguiente y fix de avance
 - Paginación sustituida por botones "← Anterior" / "Siguiente →" + indicador "Página X de Y"
