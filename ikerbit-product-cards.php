@@ -31,6 +31,15 @@ add_action('wp_head', function() {
 ";
 });
 
+// noindex para ofertas "thin" (sin custom_description).
+add_action('wp_head', function() {
+    if (!is_singular('ipc_oferta')) return;
+    $custom = get_post_meta(get_queried_object_id(), 'ipc_custom_description', true);
+    if (empty(trim((string) $custom))) {
+        echo '<meta name="robots" content="noindex">' . "\n";
+    }
+}, 1);
+
 // Sitemap de ofertas en /sitemap-ofertas.xml (indexacion de las paginas de oferta).
 add_action('init', function() {
     add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
@@ -43,7 +52,14 @@ add_action('template_redirect', function() {
 ";
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "
 ";
-    $posts = get_posts(['post_type' => 'ipc_oferta', 'post_status' => 'publish', 'numberposts' => -1]);
+    $posts = get_posts([
+        'post_type'      => 'ipc_oferta',
+        'post_status'    => 'publish',
+        'numberposts'    => -1,
+        'meta_query'     => [
+            ['key' => 'ipc_custom_description', 'value' => '', 'compare' => '!='],
+        ],
+    ]);
     foreach ($posts as $p) {
         echo '<url><loc>' . esc_url(get_permalink($p)) . '</loc></url>' . "
 ";
