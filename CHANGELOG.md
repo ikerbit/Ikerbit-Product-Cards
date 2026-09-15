@@ -22,6 +22,14 @@
 
 ---
 
+## v2.7.6.6 — Lectura de posts para PCM (fase 5G)
+- Nuevos endpoints REST de lectura (protegidos con `X-IPC-Secret`):
+  - `GET ipc/v1/posts` — listar posts con paginación, búsqueda, estado y categoría
+  - `GET ipc/v1/posts/{id}` — obtener un post con su contenido
+  - `GET ipc/v1/categories` — listar categorías
+  - `GET ipc/v1/tags` — listar etiquetas
+- Preparación para la gestión de posts/artículos desde PCM
+
 ## v2.7.6.5 — Noindex thin content y sitemap filtrado
 - `noindex` en ofertas sin `custom_description` (contenido thin)
 - Sitemap `/sitemap-ofertas.xml` solo lista ofertas con `custom_description`

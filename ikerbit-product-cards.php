@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.6.5
+ * Version: 2.7.6.6
  * Author: Ikerbit
  */
 
@@ -54,10 +54,10 @@ register_activation_hook(__FILE__, function() {
 });
 
 add_action('init', function() {
-    if (get_option('ipc_rewrite_version') !== '2.7.6.5') {
+    if (get_option('ipc_rewrite_version') !== '2.7.6.6') {
         add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
         flush_rewrite_rules();
-        update_option('ipc_rewrite_version', '2.7.6.5');
+        update_option('ipc_rewrite_version', '2.7.6.6');
     }
 }, 99);
 
@@ -832,7 +832,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.6.5'
+        '2.7.6.6'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -927,7 +927,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.6.5</h1>
+        <h1>Ikerbit Product Cards v2.7.6.6</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -1929,6 +1929,116 @@ class IPC_Widget_Ofertas extends WP_Widget {
             'color_precio'=> sanitize_hex_color($new_instance['color_precio']),
         ];
     }
+}
+
+// ─────────────────────────────────────────
+// 5G. LECTURA DE POSTS, CATEGORÍAS Y ETIQUETAS
+// ─────────────────────────────────────────
+add_action('rest_api_init', function() {
+    register_rest_route('ipc/v1', '/posts', [
+        'methods'             => 'GET',
+        'callback'            => 'ipc_listar_posts',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/posts/(?P<id>\d+)', [
+        'methods'             => 'GET',
+        'callback'            => 'ipc_obtener_post',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/categories', [
+        'methods'             => 'GET',
+        'callback'            => 'ipc_listar_categorias',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/tags', [
+        'methods'             => 'GET',
+        'callback'            => 'ipc_listar_tags',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+});
+
+function ipc_listar_posts($request) {
+    $per_page = min(max(intval($request->get_param('per_page') ?: 50), 1), 100);
+    $page     = max(intval($request->get_param('page') ?: 1), 1);
+    $search   = sanitize_text_field($request->get_param('search') ?: '');
+    $status   = sanitize_text_field($request->get_param('status') ?: 'publish');
+    $category = intval($request->get_param('category') ?: 0);
+
+    $args = [
+        'post_type'      => 'post',
+        'post_status'    => $status === 'any' ? 'any' : $status,
+        'posts_per_page' => $per_page,
+        'paged'          => $page,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ];
+    if ($search)   $args['s'] = $search;
+    if ($category) $args['cat'] = $category;
+
+    $query = new WP_Query($args);
+    $items = array_map('ipc_formatear_post', $query->posts);
+
+    return rest_ensure_response([
+        'items'    => $items,
+        'total'    => intval($query->found_posts),
+        'page'     => $page,
+        'per_page' => $per_page,
+    ]);
+}
+
+function ipc_obtener_post($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'post') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $data = ipc_formatear_post($post);
+    $data['contenido'] = $post->post_content;
+    return rest_ensure_response($data);
+}
+
+function ipc_formatear_post($post) {
+    $cats = get_the_category($post->ID);
+    $categorias = array_map(fn($c) => ['id' => $c->term_id, 'nombre' => $c->name, 'slug' => $c->slug], is_array($cats) ? $cats : []);
+    return [
+        'id'                 => $post->ID,
+        'titulo'             => $post->post_title,
+        'slug'               => $post->post_name,
+        'estado'             => $post->post_status,
+        'url'                => get_permalink($post),
+        'fecha'              => $post->post_date,
+        'fecha_modificacion' => $post->post_modified,
+        'extracto'           => wp_strip_all_tags($post->post_excerpt),
+        'imagen'             => get_the_post_thumbnail_url($post->ID, 'medium') ?: '',
+        'categorias'         => $categorias,
+        'tags'               => wp_get_post_tags($post->ID, ['fields' => 'names']),
+    ];
+}
+
+function ipc_listar_categorias($request) {
+    $terms = get_terms(['taxonomy' => 'category', 'hide_empty' => false]);
+    if (is_wp_error($terms)) $terms = [];
+    return rest_ensure_response([
+        'items' => array_map('ipc_formatear_term', $terms),
+    ]);
+}
+
+function ipc_listar_tags($request) {
+    $terms = get_terms(['taxonomy' => 'post_tag', 'hide_empty' => false]);
+    if (is_wp_error($terms)) $terms = [];
+    return rest_ensure_response([
+        'items' => array_map('ipc_formatear_term', $terms),
+    ]);
+}
+
+function ipc_formatear_term($term) {
+    return [
+        'id'          => $term->term_id,
+        'nombre'      => $term->name,
+        'slug'        => $term->slug,
+        'descripcion' => $term->description,
+        'url'         => get_term_link($term),
+        'cantidad'    => $term->count,
+    ];
 }
 
 // Cargar página de edición
