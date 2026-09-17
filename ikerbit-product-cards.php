@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.0
+ * Version: 2.7.7.1
  * Author: Ikerbit
  */
 
@@ -54,10 +54,10 @@ register_activation_hook(__FILE__, function() {
 });
 
 add_action('init', function() {
-    if (get_option('ipc_rewrite_version') !== '2.7.7.0') {
+    if (get_option('ipc_rewrite_version') !== '2.7.7.1') {
         add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
         flush_rewrite_rules();
-        update_option('ipc_rewrite_version', '2.7.7.0');
+        update_option('ipc_rewrite_version', '2.7.7.1');
     }
 }, 99);
 
@@ -832,7 +832,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.7.0'
+        '2.7.7.1'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -927,7 +927,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.7.0</h1>
+        <h1>Ikerbit Product Cards v2.7.7.1</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2071,6 +2071,9 @@ function ipc_crear_post($request) {
         return new WP_Error('create_failed', $post_id->get_error_message(), ['status' => 500]);
     }
     ipc_guardar_seo_post($post_id, $params);
+    if (isset($params['tags']) && is_array($params['tags'])) {
+        wp_set_post_tags($post_id, array_map('intval', $params['tags']), false);
+    }
     return rest_ensure_response(['id' => $post_id, 'url' => get_permalink($post_id), 'status' => get_post_status($post_id)]);
 }
 
@@ -2092,6 +2095,9 @@ function ipc_actualizar_post($request) {
         return new WP_Error('update_failed', $res->get_error_message(), ['status' => 500]);
     }
     ipc_guardar_seo_post($post->ID, $params);
+    if (isset($params['tags']) && is_array($params['tags'])) {
+        wp_set_post_tags($post->ID, array_map('intval', $params['tags']), false);
+    }
     return rest_ensure_response(['id' => $post->ID, 'url' => get_permalink($post->ID), 'status' => get_post_status($post->ID)]);
 }
 

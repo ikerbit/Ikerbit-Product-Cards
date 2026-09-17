@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.1 — Etiquetas en escritura de posts (fase 5G)
+- `POST/PUT ipc/v1/posts` ahora aceptan `tags` (array de ids) y asignan las etiquetas al post
+
 ## v2.7.7.0 — Escritura de posts para PCM (fase 5G)
 - Nuevos endpoints REST de escritura (protegidos con `X-IPC-Secret`):
   - `POST ipc/v1/posts` — crear un post (borrador) con título, contenido, slug, categorías y campos SEO
