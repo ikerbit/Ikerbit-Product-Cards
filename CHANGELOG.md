@@ -22,6 +22,12 @@
 
 ---
 
+## v2.7.7.0 — Escritura de posts para PCM (fase 5G)
+- Nuevos endpoints REST de escritura (protegidos con `X-IPC-Secret`):
+  - `POST ipc/v1/posts` — crear un post (borrador) con título, contenido, slug, categorías y campos SEO
+  - `PUT ipc/v1/posts/{id}` — actualizar un post existente
+- Guardado de campos SEO (`_yoast_wpseo_title`, `_yoast_wpseo_metadesc`, `_yoast_wpseo_focuskw`)
+
 ## v2.7.6.6 — Lectura de posts para PCM (fase 5G)
 - Nuevos endpoints REST de lectura (protegidos con `X-IPC-Secret`):
   - `GET ipc/v1/posts` — listar posts con paginación, búsqueda, estado y categoría

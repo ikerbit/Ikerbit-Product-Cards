@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.6.6
+ * Version: 2.7.7.0
  * Author: Ikerbit
  */
 
@@ -54,10 +54,10 @@ register_activation_hook(__FILE__, function() {
 });
 
 add_action('init', function() {
-    if (get_option('ipc_rewrite_version') !== '2.7.6.6') {
+    if (get_option('ipc_rewrite_version') !== '2.7.7.0') {
         add_rewrite_rule('^sitemap-ofertas\.xml$', 'index.php?ipc_sitemap=1', 'top');
         flush_rewrite_rules();
-        update_option('ipc_rewrite_version', '2.7.6.6');
+        update_option('ipc_rewrite_version', '2.7.7.0');
     }
 }, 99);
 
@@ -832,7 +832,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.6.6'
+        '2.7.7.0'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -927,7 +927,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.6.6</h1>
+        <h1>Ikerbit Product Cards v2.7.7.0</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2039,6 +2039,74 @@ function ipc_formatear_term($term) {
         'url'         => get_term_link($term),
         'cantidad'    => $term->count,
     ];
+}
+
+// ─────────────────────────────────────────
+// 5G. ESCRITURA DE POSTS (crear/actualizar borrador)
+// ─────────────────────────────────────────
+add_action('rest_api_init', function() {
+    register_rest_route('ipc/v1', '/posts', [
+        'methods'             => 'POST',
+        'callback'            => 'ipc_crear_post',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/posts/(?P<id>\d+)', [
+        'methods'             => 'PUT',
+        'callback'            => 'ipc_actualizar_post',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+});
+
+function ipc_crear_post($request) {
+    $params = $request->get_json_params();
+    $post_id = wp_insert_post([
+        'post_type'     => 'post',
+        'post_status'   => in_array($params['estado'] ?? 'draft', ['draft', 'publish', 'pending'], true) ? $params['estado'] : 'draft',
+        'post_title'    => sanitize_text_field($params['titulo'] ?? ''),
+        'post_content'  => wp_kses_post($params['contenido'] ?? ''),
+        'post_name'     => isset($params['slug']) && $params['slug'] !== '' ? sanitize_title($params['slug']) : '',
+        'post_category' => array_map('intval', (array)($params['categorias'] ?? [])),
+    ]);
+    if (is_wp_error($post_id)) {
+        return new WP_Error('create_failed', $post_id->get_error_message(), ['status' => 500]);
+    }
+    ipc_guardar_seo_post($post_id, $params);
+    return rest_ensure_response(['id' => $post_id, 'url' => get_permalink($post_id), 'status' => get_post_status($post_id)]);
+}
+
+function ipc_actualizar_post($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'post') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $params = $request->get_json_params();
+    $data = ['ID' => $post->ID];
+    if (isset($params['titulo'])) $data['post_title'] = sanitize_text_field($params['titulo']);
+    if (isset($params['contenido'])) $data['post_content'] = wp_kses_post($params['contenido']);
+    if (isset($params['estado'])) $data['post_status'] = sanitize_text_field($params['estado']);
+    if (isset($params['slug']) && $params['slug'] !== '') $data['post_name'] = sanitize_title($params['slug']);
+    if (isset($params['categorias'])) $data['post_category'] = array_map('intval', (array)$params['categorias']);
+
+    $res = wp_update_post($data);
+    if (is_wp_error($res)) {
+        return new WP_Error('update_failed', $res->get_error_message(), ['status' => 500]);
+    }
+    ipc_guardar_seo_post($post->ID, $params);
+    return rest_ensure_response(['id' => $post->ID, 'url' => get_permalink($post->ID), 'status' => get_post_status($post->ID)]);
+}
+
+// Guarda los campos SEO (Yoast) en post meta si vienen en el payload.
+function ipc_guardar_seo_post($post_id, $params) {
+    $meta = [
+        'meta_title'       => '_yoast_wpseo_title',
+        'meta_description' => '_yoast_wpseo_metadesc',
+        'focus_keyword'    => '_yoast_wpseo_focuskw',
+    ];
+    foreach ($meta as $campo => $meta_key) {
+        if (isset($params[$campo])) {
+            update_post_meta($post_id, $meta_key, sanitize_text_field($params[$campo]));
+        }
+    }
 }
 
 // Cargar página de edición
