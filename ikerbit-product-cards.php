@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.7
+ * Version: 2.7.7.8
  * Author: Ikerbit
  */
 
@@ -860,7 +860,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.7.7'
+        '2.7.7.1'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -955,7 +955,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.7.7</h1>
+        <h1>Ikerbit Product Cards v2.7.7.1</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2137,7 +2137,21 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_eliminar_post',
         'permission_callback' => 'ipc_check_secret',
     ]);
+    register_rest_route('ipc/v1', '/render', [
+        'methods'             => 'POST',
+        'callback'            => 'ipc_render_contenido',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
 });
+
+// Renderiza shortcodes (p. ej. [oferta id], [ofertas ids]) en HTML para previsualizar.
+function ipc_render_contenido($request) {
+    $params = $request->get_json_params();
+    $contenido = (string) ($params['contenido'] ?? '');
+    if ($contenido === '') return rest_ensure_response(['html' => '']);
+    $html = do_shortcode($contenido);
+    return rest_ensure_response(['html' => $html]);
+}
 
 function ipc_eliminar_post($request) {
     $post = get_post(intval($request['id']));
