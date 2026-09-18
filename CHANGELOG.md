@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.7 — Eliminar posts vía IPC (fase 5G)
+- `DELETE ipc/v1/posts/{id}` manda el post a la papelera
+
 ## v2.7.7.6 — Grid de ofertas robusto (ids separados por espacios, comas o pipes)
 - `[ofertas ids="1 2 3"]` (también admite comas/pipes): evita que el editor de bloques corrompa el atributo con comas
 
