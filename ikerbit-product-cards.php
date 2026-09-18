@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.2
+ * Version: 2.7.7.3
  * Author: Ikerbit
  */
 
@@ -2024,9 +2024,32 @@ function ipc_obtener_post($request) {
     return rest_ensure_response($data);
 }
 
+function ipc_contar_enlaces($content) {
+    $ilinks = 0;
+    $elinks = 0;
+    if (preg_match_all('/<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>/i', $content, $m)) {
+        $host = wp_parse_url(home_url(), PHP_URL_HOST);
+        foreach ($m[1] as $href) {
+            $href = trim($href);
+            if ($href === '' || strpos($href, '#') === 0 || strpos($href, 'javascript:') === 0 || strpos($href, 'mailto:') === 0) continue;
+            if (strpos($href, '//') === 0) $href = 'http:' . $href;
+            $h = wp_parse_url($href, PHP_URL_HOST);
+            if ($h === null || strtolower($h) === strtolower((string) $host)) {
+                $ilinks++;
+            } else {
+                $elinks++;
+            }
+        }
+    }
+    return [$ilinks, $elinks];
+}
+
 function ipc_formatear_post($post) {
     $cats = get_the_category($post->ID);
     $categorias = array_map(fn($c) => ['id' => $c->term_id, 'nombre' => $c->name, 'slug' => $c->slug], is_array($cats) ? $cats : []);
+    $content = $post->post_content;
+    [$ilinks, $elinks] = ipc_contar_enlaces($content);
+    preg_match_all('/<img\s/i', $content, $imgs);
     return [
         'id'                 => $post->ID,
         'titulo'             => $post->post_title,
@@ -2037,6 +2060,9 @@ function ipc_formatear_post($post) {
         'fecha_modificacion' => $post->post_modified,
         'extracto'           => wp_strip_all_tags($post->post_excerpt),
         'imagen'             => get_the_post_thumbnail_url($post->ID, 'medium') ?: '',
+        'ilinks'             => $ilinks,
+        'elinks'             => $elinks,
+        'images'             => count($imgs),
         'categorias'         => $categorias,
         'tags'               => wp_get_post_tags($post->ID, ['fields' => 'names']),
     ];

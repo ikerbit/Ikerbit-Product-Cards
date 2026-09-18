@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.3 — Contadores de enlaces/imágenes en listado de posts (fase 5G)
+- `GET ipc/v1/posts` devuelve `ilinks`, `elinks` e `images` por post (calculados de `post_content`)
+
 ## v2.7.7.2 — Grid de ofertas por ids (fase 5G)
 - `[ofertas ids="1,2,3"]` muestra esas ofertas concretas en grid (post__in), ignorando filtros
 
