@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.6
+ * Version: 2.7.7.7
  * Author: Ikerbit
  */
 
@@ -860,7 +860,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.7.6'
+        '2.7.7.1'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -955,7 +955,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.7.6</h1>
+        <h1>Ikerbit Product Cards v2.7.7.1</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2129,7 +2129,24 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_actualizar_post',
         'permission_callback' => 'ipc_check_secret',
     ]);
+    register_rest_route('ipc/v1', '/posts/(?P<id>\d+)', [
+        'methods'             => 'DELETE',
+        'callback'            => 'ipc_eliminar_post',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
 });
+
+function ipc_eliminar_post($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'post') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $res = wp_trash_post($post->ID);
+    if (!$res) {
+        return new WP_Error('delete_failed', 'No se pudo eliminar', ['status' => 500]);
+    }
+    return rest_ensure_response(['ok' => true, 'id' => $post->ID]);
+}
 
 function ipc_crear_post($request) {
     $params = $request->get_json_params();
