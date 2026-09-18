@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.8 — Render de shortcodes vía IPC (fase 5G)
+- `POST ipc/v1/render` devuelve el HTML con los shortcodes procesados (`do_shortcode`) para previsualizar cards
+
 ## v2.7.7.7 — Eliminar posts vía IPC (fase 5G)
 - `DELETE ipc/v1/posts/{id}` manda el post a la papelera
 
