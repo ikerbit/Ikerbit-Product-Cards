@@ -2028,9 +2028,11 @@ function ipc_contar_enlaces($content, $post_url = '') {
     $ilinks = 0;
     $elinks = 0;
     $host = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
-    $self_path = '';
+    // Clave de página (path + query, sin fragmento) para descartar anclas/autoenlaces.
+    $self_key = '';
     if ($post_url) {
-        $self_path = rtrim((string) wp_parse_url($post_url, PHP_URL_PATH), '/');
+        $self_key = rtrim((string) wp_parse_url($post_url, PHP_URL_PATH), '/')
+            . '?' . (string) wp_parse_url($post_url, PHP_URL_QUERY);
     }
     if (preg_match_all('/<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>/i', $content, $m)) {
         foreach ($m[1] as $href) {
@@ -2038,11 +2040,12 @@ function ipc_contar_enlaces($content, $post_url = '') {
             if ($href === '' || strpos($href, '#') === 0 || strpos($href, 'javascript:') === 0 || strpos($href, 'mailto:') === 0) continue;
             if (strpos($href, '//') === 0) $href = 'http:' . $href;
             $h = strtolower((string) wp_parse_url($href, PHP_URL_HOST));
-            $path = rtrim((string) wp_parse_url($href, PHP_URL_PATH), '/');
+            $key = rtrim((string) wp_parse_url($href, PHP_URL_PATH), '/')
+                . '?' . (string) wp_parse_url($href, PHP_URL_QUERY);
             if ($h === null || $h === $host) {
                 // Enlace al mismo host. Excluye anclas/autoenlaces al propio post (índice
                 // de contenidos y navegación intra-artículo): no reparten link equity.
-                if ($self_path !== '' && $path === $self_path) continue;
+                if ($self_key !== '' && $key === $self_key) continue;
                 $ilinks++;
             } else {
                 $elinks++;
