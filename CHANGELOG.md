@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.2 — Grid de ofertas por ids (fase 5G)
+- `[ofertas ids="1,2,3"]` muestra esas ofertas concretas en grid (post__in), ignorando filtros
+
 ## v2.7.7.1 — Etiquetas en escritura de posts (fase 5G)
 - `POST/PUT ipc/v1/posts` ahora aceptan `tags` (array de ids) y asignan las etiquetas al post
 

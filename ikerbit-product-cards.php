@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.1
+ * Version: 2.7.7.2
  * Author: Ikerbit
  */
 
@@ -670,6 +670,7 @@ function ipc_shortcode_single($atts) {
 
 function ipc_shortcode_grid($atts) {
     $atts = shortcode_atts([
+        'ids'          => '',
         'categoria'    => '',
         'marketplace'  => '',
         'marca'        => '',
@@ -683,6 +684,33 @@ function ipc_shortcode_grid($atts) {
         'product_code' => '',
         'buscar'       => '',
     ], $atts);
+
+    // Lista explícita de ofertas por id (post__in): ignora el resto de filtros.
+    if ($atts['ids']) {
+        $ids = array_values(array_filter(array_map('intval', explode(',', $atts['ids']))));
+        if (!empty($ids)) {
+            $query = new WP_Query([
+                'post_type'      => 'ipc_oferta',
+                'post__in'       => $ids,
+                'orderby'        => 'post__in',
+                'posts_per_page' => count($ids),
+                'post_status'    => 'publish',
+            ]);
+            if ($query->have_posts()) {
+                ipc_enqueue_styles();
+                $layout_class = $atts['layout'] === 'horizontal' ? 'ipc-wrap--horizontal' : 'ipc-wrap--grid';
+                $html = '<div class="ipc-wrap ' . esc_attr($layout_class) . '">';
+                while ($query->have_posts()) {
+                    $query->the_post();
+                    $html .= ipc_render_card(get_post());
+                }
+                wp_reset_postdata();
+                $html .= '</div>';
+                return $html;
+            }
+            return '<p class="ipc-empty">No hay ofertas disponibles.</p>';
+        }
+    }
 
     $args = [
         'post_type'      => 'ipc_oferta',
