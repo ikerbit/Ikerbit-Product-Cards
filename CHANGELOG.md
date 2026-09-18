@@ -22,6 +22,12 @@
 
 ---
 
+## v2.7.7.6 — Grid de ofertas robusto (ids separados por espacios, comas o pipes)
+- `[ofertas ids="1 2 3"]` (también admite comas/pipes): evita que el editor de bloques corrompa el atributo con comas
+
+## v2.7.7.5 — Ajuste fino del conteo de enlaces
+- Conteo de enlaces null-safe y autoenlaces detectados por host del propio post
+
 ## v2.7.7.4 — Excluir anclas/autoenlaces del conteo de enlaces (fase 5G)
 - `ilinks` ya no cuenta los enlaces a secciones del propio post (índice de contenidos), solo enlaces a otras páginas del sitio
 

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.5
+ * Version: 2.7.7.6
  * Author: Ikerbit
  */
 
@@ -687,7 +687,7 @@ function ipc_shortcode_grid($atts) {
 
     // Lista explícita de ofertas por id (post__in): ignora el resto de filtros.
     if ($atts['ids']) {
-        $ids = array_values(array_filter(array_map('intval', explode(',', $atts['ids']))));
+        $ids = array_values(array_filter(array_map('intval', preg_split('/[\s,|]+/', $atts['ids'], -1, PREG_SPLIT_NO_EMPTY))));
         if (!empty($ids)) {
             $query = new WP_Query([
                 'post_type'      => 'ipc_oferta',
