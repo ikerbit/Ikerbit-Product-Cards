@@ -2021,6 +2021,9 @@ function ipc_obtener_post($request) {
     }
     $data = ipc_formatear_post($post);
     $data['contenido'] = $post->post_content;
+    $data['seo_title'] = get_post_meta($post->ID, '_yoast_wpseo_title', true) ?: '';
+    $data['seo_metadesc'] = get_post_meta($post->ID, '_yoast_wpseo_metadesc', true) ?: '';
+    $data['focus_keyword'] = get_post_meta($post->ID, '_yoast_wpseo_focuskw', true) ?: '';
     return rest_ensure_response($data);
 }
 
