@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.3
+ * Version: 2.7.7.4
  * Author: Ikerbit
  */
 
@@ -860,7 +860,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.7.3'
+        '2.7.7.1'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -955,7 +955,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.7.3</h1>
+        <h1>Ikerbit Product Cards v2.7.7.1</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2024,17 +2024,25 @@ function ipc_obtener_post($request) {
     return rest_ensure_response($data);
 }
 
-function ipc_contar_enlaces($content) {
+function ipc_contar_enlaces($content, $post_url = '') {
     $ilinks = 0;
     $elinks = 0;
+    $host = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
+    $self_path = '';
+    if ($post_url) {
+        $self_path = rtrim((string) wp_parse_url($post_url, PHP_URL_PATH), '/');
+    }
     if (preg_match_all('/<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>/i', $content, $m)) {
-        $host = wp_parse_url(home_url(), PHP_URL_HOST);
         foreach ($m[1] as $href) {
             $href = trim($href);
             if ($href === '' || strpos($href, '#') === 0 || strpos($href, 'javascript:') === 0 || strpos($href, 'mailto:') === 0) continue;
             if (strpos($href, '//') === 0) $href = 'http:' . $href;
-            $h = wp_parse_url($href, PHP_URL_HOST);
-            if ($h === null || strtolower($h) === strtolower((string) $host)) {
+            $h = strtolower((string) wp_parse_url($href, PHP_URL_HOST));
+            $path = rtrim((string) wp_parse_url($href, PHP_URL_PATH), '/');
+            if ($h === null || $h === $host) {
+                // Enlace al mismo host. Excluye anclas/autoenlaces al propio post (índice
+                // de contenidos y navegación intra-artículo): no reparten link equity.
+                if ($self_path !== '' && $path === $self_path) continue;
                 $ilinks++;
             } else {
                 $elinks++;
@@ -2048,7 +2056,7 @@ function ipc_formatear_post($post) {
     $cats = get_the_category($post->ID);
     $categorias = array_map(fn($c) => ['id' => $c->term_id, 'nombre' => $c->name, 'slug' => $c->slug], is_array($cats) ? $cats : []);
     $content = $post->post_content;
-    [$ilinks, $elinks] = ipc_contar_enlaces($content);
+    [$ilinks, $elinks] = ipc_contar_enlaces($content, get_permalink($post));
     preg_match_all('/<img\s/i', $content, $imgs);
     return [
         'id'                 => $post->ID,

@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.4 — Excluir anclas/autoenlaces del conteo de enlaces (fase 5G)
+- `ilinks` ya no cuenta los enlaces a secciones del propio post (índice de contenidos), solo enlaces a otras páginas del sitio
+
 ## v2.7.7.3 — Contadores de enlaces/imágenes en listado de posts (fase 5G)
 - `GET ipc/v1/posts` devuelve `ilinks`, `elinks` e `images` por post (calculados de `post_content`)
 
