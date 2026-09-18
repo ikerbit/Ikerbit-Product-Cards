@@ -860,7 +860,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.7.1'
+        '2.7.7.6'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -955,7 +955,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.7.1</h1>
+        <h1>Ikerbit Product Cards v2.7.7.6</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
