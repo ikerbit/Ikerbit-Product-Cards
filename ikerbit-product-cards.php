@@ -2062,7 +2062,7 @@ function ipc_formatear_post($post) {
         'imagen'             => get_the_post_thumbnail_url($post->ID, 'medium') ?: '',
         'ilinks'             => $ilinks,
         'elinks'             => $elinks,
-        'images'             => count($imgs),
+        'images'             => count($imgs[0]),
         'categorias'         => $categorias,
         'tags'               => wp_get_post_tags($post->ID, ['fields' => 'names']),
     ];
