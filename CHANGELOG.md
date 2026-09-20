@@ -22,6 +22,9 @@
 
 ---
 
+## v2.7.7.9 — Noindex de ofertas vía IPC (fase 5F.6)
+- `POST/PUT ipc/v1/oferta` acepta `noindex` (boolean): escribe/borra `_yoast_wpseo_meta-robots-noindex`
+
 ## v2.7.7.8 — Render de shortcodes vía IPC (fase 5G)
 - `POST ipc/v1/render` devuelve el HTML con los shortcodes procesados (`do_shortcode`) para previsualizar cards
 
