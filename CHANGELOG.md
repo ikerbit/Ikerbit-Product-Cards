@@ -22,6 +22,12 @@
 
 ---
 
+---
+
+## v2.7.8.0 — Endpoints CRUD de páginas (fase 5G)
+- Lectura/escritura/borrado de páginas WordPress vía REST: `GET/POST ipc/v1/pages`, `GET/PUT/DELETE ipc/v1/pages/{id}`
+- Listado con búsqueda, paginación y estado
+
 ## v2.7.7.9 — Noindex de ofertas vía IPC (fase 5F.6)
 - `POST/PUT ipc/v1/oferta` acepta `noindex` (boolean): escribe/borra `_yoast_wpseo_meta-robots-noindex`
 

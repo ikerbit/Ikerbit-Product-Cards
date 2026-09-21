@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.7.9
+ * Version: 2.7.8.0
  * Author: Ikerbit
  */
 
@@ -867,7 +867,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.7.9'
+        '2.7.8.0'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -962,7 +962,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.7.9</h1>
+        <h1>Ikerbit Product Cards v2.7.8.0</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -1980,6 +1980,16 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_obtener_post',
         'permission_callback' => 'ipc_check_secret',
     ]);
+    register_rest_route('ipc/v1', '/pages', [
+        'methods'             => 'GET',
+        'callback'            => 'ipc_listar_pages',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/pages/(?P<id>\d+)', [
+        'methods'             => 'GET',
+        'callback'            => 'ipc_obtener_page',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
     register_rest_route('ipc/v1', '/categories', [
         'methods'             => 'GET',
         'callback'            => 'ipc_listar_categorias',
@@ -2024,6 +2034,46 @@ function ipc_listar_posts($request) {
 function ipc_obtener_post($request) {
     $post = get_post(intval($request['id']));
     if (!$post || $post->post_type !== 'post') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $data = ipc_formatear_post($post);
+    $data['contenido'] = $post->post_content;
+    $data['seo_title'] = get_post_meta($post->ID, '_yoast_wpseo_title', true) ?: '';
+    $data['seo_metadesc'] = get_post_meta($post->ID, '_yoast_wpseo_metadesc', true) ?: '';
+    $data['focus_keyword'] = get_post_meta($post->ID, '_yoast_wpseo_focuskw', true) ?: '';
+    return rest_ensure_response($data);
+}
+
+function ipc_listar_pages($request) {
+    $per_page = min(max(intval($request->get_param('per_page') ?: 50), 1), 100);
+    $page     = max(intval($request->get_param('page') ?: 1), 1);
+    $search   = sanitize_text_field($request->get_param('search') ?: '');
+    $status   = sanitize_text_field($request->get_param('status') ?: 'publish');
+
+    $args = [
+        'post_type'      => 'page',
+        'post_status'    => $status === 'any' ? 'any' : $status,
+        'posts_per_page' => $per_page,
+        'paged'          => $page,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+    ];
+    if ($search) $args['s'] = $search;
+
+    $query = new WP_Query($args);
+    $items = array_map('ipc_formatear_post', $query->posts);
+
+    return rest_ensure_response([
+        'items'    => $items,
+        'total'    => intval($query->found_posts),
+        'page'     => $page,
+        'per_page' => $per_page,
+    ]);
+}
+
+function ipc_obtener_page($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'page') {
         return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
     }
     $data = ipc_formatear_post($post);
@@ -2144,6 +2194,21 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_eliminar_post',
         'permission_callback' => 'ipc_check_secret',
     ]);
+    register_rest_route('ipc/v1', '/pages', [
+        'methods'             => 'POST',
+        'callback'            => 'ipc_crear_page',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/pages/(?P<id>\d+)', [
+        'methods'             => 'PUT',
+        'callback'            => 'ipc_actualizar_page',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/pages/(?P<id>\d+)', [
+        'methods'             => 'DELETE',
+        'callback'            => 'ipc_eliminar_page',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
     register_rest_route('ipc/v1', '/render', [
         'methods'             => 'POST',
         'callback'            => 'ipc_render_contenido',
@@ -2213,6 +2278,54 @@ function ipc_actualizar_post($request) {
     if (isset($params['tags']) && is_array($params['tags'])) {
         wp_set_post_tags($post->ID, array_map('intval', $params['tags']), false);
     }
+    return rest_ensure_response(['id' => $post->ID, 'url' => get_permalink($post->ID), 'status' => get_post_status($post->ID)]);
+}
+
+function ipc_eliminar_page($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'page') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $res = wp_trash_post($post->ID);
+    if (!$res) {
+        return new WP_Error('delete_failed', 'No se pudo eliminar', ['status' => 500]);
+    }
+    return rest_ensure_response(['ok' => true, 'id' => $post->ID]);
+}
+
+function ipc_crear_page($request) {
+    $params = $request->get_json_params();
+    $post_id = wp_insert_post([
+        'post_type'    => 'page',
+        'post_status'  => in_array($params['estado'] ?? 'draft', ['draft', 'publish', 'pending'], true) ? $params['estado'] : 'draft',
+        'post_title'   => sanitize_text_field($params['titulo'] ?? ''),
+        'post_content' => wp_kses_post($params['contenido'] ?? ''),
+        'post_name'    => isset($params['slug']) && $params['slug'] !== '' ? sanitize_title($params['slug']) : '',
+    ]);
+    if (is_wp_error($post_id)) {
+        return new WP_Error('create_failed', $post_id->get_error_message(), ['status' => 500]);
+    }
+    ipc_guardar_seo_post($post_id, $params);
+    return rest_ensure_response(['id' => $post_id, 'url' => get_permalink($post_id), 'status' => get_post_status($post_id)]);
+}
+
+function ipc_actualizar_page($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'page') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $params = $request->get_json_params();
+    $data = ['ID' => $post->ID];
+    if (isset($params['titulo'])) $data['post_title'] = sanitize_text_field($params['titulo']);
+    if (isset($params['contenido'])) $data['post_content'] = wp_kses_post($params['contenido']);
+    if (isset($params['estado'])) $data['post_status'] = sanitize_text_field($params['estado']);
+    if (isset($params['slug']) && $params['slug'] !== '') $data['post_name'] = sanitize_title($params['slug']);
+
+    $res = wp_update_post($data);
+    if (is_wp_error($res)) {
+        return new WP_Error('update_failed', $res->get_error_message(), ['status' => 500]);
+    }
+    ipc_guardar_seo_post($post->ID, $params);
     return rest_ensure_response(['id' => $post->ID, 'url' => get_permalink($post->ID), 'status' => get_post_status($post->ID)]);
 }
 
