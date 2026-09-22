@@ -24,6 +24,9 @@
 
 ---
 
+## v2.7.8.4 — Noindex de posts y páginas vía IPC (fase 5F.6)
+- `POST/PUT ipc/v1/posts` y `POST/PUT ipc/v1/pages` aceptan `noindex` (boolean): escribe/borra `_yoast_wpseo_meta-robots-noindex`
+
 ## v2.7.8.3 — Actualización de términos (fase 5G)
 - `PUT ipc/v1/categories/{id}` y `PUT ipc/v1/tags/{id}`: actualizar nombre, slug y descripción de términos
 

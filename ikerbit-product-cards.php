@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.8.3
+ * Version: 2.7.8.4
  * Author: Ikerbit
  */
 
@@ -867,7 +867,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.8.3'
+        '2.7.8.4'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -962,7 +962,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.8.3</h1>
+        <h1>Ikerbit Product Cards v2.7.8.4</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2479,6 +2479,13 @@ function ipc_guardar_seo_post($post_id, $params) {
     foreach ($meta as $campo => $meta_key) {
         if (isset($params[$campo])) {
             update_post_meta($post_id, $meta_key, sanitize_text_field($params[$campo]));
+        }
+    }
+    if (isset($params['noindex'])) {
+        if ($params['noindex']) {
+            update_post_meta($post_id, '_yoast_wpseo_meta-robots-noindex', '1');
+        } else {
+            delete_post_meta($post_id, '_yoast_wpseo_meta-robots-noindex');
         }
     }
 }
