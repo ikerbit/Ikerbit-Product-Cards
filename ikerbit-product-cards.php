@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.8.2
+ * Version: 2.7.8.3
  * Author: Ikerbit
  */
 
@@ -867,7 +867,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.8.2'
+        '2.7.8.3'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -962,7 +962,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.8.2</h1>
+        <h1>Ikerbit Product Cards v2.7.8.3</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2273,6 +2273,33 @@ function ipc_formatear_term($term) {
     ];
 }
 
+// Actualiza los campos SEO de un término (categoría o etiqueta): nombre, slug y descripción.
+function ipc_actualizar_term($request, $taxonomy) {
+    $term = get_term(intval($request['id']), $taxonomy);
+    if (is_wp_error($term) || !$term) {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $params = $request->get_json_params();
+    $args = [];
+    if (isset($params['nombre'])) $args['name'] = sanitize_text_field($params['nombre']);
+    if (isset($params['slug'])) $args['slug'] = sanitize_title($params['slug']);
+    if (isset($params['descripcion'])) $args['description'] = wp_kses_post($params['descripcion']);
+
+    $res = wp_update_term($term->term_id, $taxonomy, $args);
+    if (is_wp_error($res)) {
+        return new WP_Error('update_failed', $res->get_error_message(), ['status' => 500]);
+    }
+    return rest_ensure_response(ipc_formatear_term(get_term($term->term_id, $taxonomy)));
+}
+
+function ipc_actualizar_categoria($request) {
+    return ipc_actualizar_term($request, 'category');
+}
+
+function ipc_actualizar_tag($request) {
+    return ipc_actualizar_term($request, 'post_tag');
+}
+
 // ─────────────────────────────────────────
 // 5G. ESCRITURA DE POSTS (crear/actualizar borrador)
 // ─────────────────────────────────────────
@@ -2310,6 +2337,16 @@ add_action('rest_api_init', function() {
     register_rest_route('ipc/v1', '/media/(?P<id>\d+)', [
         'methods'             => 'PUT',
         'callback'            => 'ipc_actualizar_media',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/categories/(?P<id>\d+)', [
+        'methods'             => 'PUT',
+        'callback'            => 'ipc_actualizar_categoria',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/tags/(?P<id>\d+)', [
+        'methods'             => 'PUT',
+        'callback'            => 'ipc_actualizar_tag',
         'permission_callback' => 'ipc_check_secret',
     ]);
     register_rest_route('ipc/v1', '/render', [

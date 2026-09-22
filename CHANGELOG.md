@@ -24,6 +24,9 @@
 
 ---
 
+## v2.7.8.3 — Actualización de términos (fase 5G)
+- `PUT ipc/v1/categories/{id}` y `PUT ipc/v1/tags/{id}`: actualizar nombre, slug y descripción de términos
+
 ## v2.7.8.2 — Ordenación en listado de medios (fase 5G)
 - `GET ipc/v1/media` acepta `orderby` (date, titulo, alt) y `order` (ASC/DESC)
 
