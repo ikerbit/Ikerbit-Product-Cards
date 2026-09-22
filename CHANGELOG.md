@@ -24,6 +24,9 @@
 
 ---
 
+## v2.7.8.2 — Ordenación en listado de medios (fase 5G)
+- `GET ipc/v1/media` acepta `orderby` (date, titulo, alt) y `order` (ASC/DESC)
+
 ## v2.7.8.1 — Endpoints de medios/imágenes (fase 5G)
 - `GET ipc/v1/media` y `GET ipc/v1/media/{id}`: listar y leer imágenes con atributos SEO (alt/título/caption)
 - Filtro `sin_alt=1` para localizar imágenes sin alt

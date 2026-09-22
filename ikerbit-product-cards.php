@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.8.1
+ * Version: 2.7.8.2
  * Author: Ikerbit
  */
 
@@ -867,7 +867,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.8.1'
+        '2.7.8.2'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -962,7 +962,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.8.1</h1>
+        <h1>Ikerbit Product Cards v2.7.8.2</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2118,6 +2118,8 @@ function ipc_listar_media($request) {
     $page     = max(intval($request->get_param('page') ?: 1), 1);
     $search   = sanitize_text_field($request->get_param('search') ?: '');
     $sin_alt  = $request->get_param('sin_alt') === '1';
+    $orderby  = sanitize_text_field($request->get_param('orderby') ?: 'date');
+    $order    = strtoupper($request->get_param('order') ?: 'DESC') === 'ASC' ? 'ASC' : 'DESC';
 
     $args = [
         'post_type'      => 'attachment',
@@ -2126,8 +2128,14 @@ function ipc_listar_media($request) {
         'posts_per_page' => $per_page,
         'paged'          => $page,
         'orderby'        => 'date',
-        'order'          => 'DESC',
+        'order'          => $order,
     ];
+    if ($orderby === 'titulo') {
+        $args['orderby'] = 'title';
+    } elseif ($orderby === 'alt') {
+        $args['orderby']  = 'meta_value';
+        $args['meta_key'] = '_wp_attachment_image_alt';
+    }
     if ($search) $args['s'] = $search;
     if ($sin_alt) {
         $args['meta_query'] = [
