@@ -24,6 +24,10 @@
 
 ---
 
+## v2.7.8.1 — Endpoints de medios/imágenes (fase 5G)
+- `GET ipc/v1/media` y `GET ipc/v1/media/{id}`: listar y leer imágenes con atributos SEO (alt/título/caption)
+- Filtro `sin_alt=1` para localizar imágenes sin alt
+
 ## v2.7.8.0 — Endpoints CRUD de páginas (fase 5G)
 - Lectura/escritura/borrado de páginas WordPress vía REST: `GET/POST ipc/v1/pages`, `GET/PUT/DELETE ipc/v1/pages/{id}`
 - Listado con búsqueda, paginación y estado
