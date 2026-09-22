@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.8.4
+ * Version: 2.7.9.0
  * Author: Ikerbit
  */
 
@@ -867,7 +867,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.8.4'
+        '2.7.9.0'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -962,7 +962,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.8.4</h1>
+        <h1>Ikerbit Product Cards v2.7.9.0</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2182,6 +2182,42 @@ function ipc_actualizar_media($request) {
     return rest_ensure_response(ipc_formatear_media(get_post($att->ID)));
 }
 
+// Sube una imagen desde una URL (p. ej. Pexels) a la biblioteca de medios, con alt y título.
+function ipc_subir_media($request) {
+    $params = $request->get_json_params();
+    $url    = (string)($params['url'] ?? '');
+    $alt    = sanitize_text_field($params['alt'] ?? '');
+    $titulo = sanitize_text_field($params['titulo'] ?? '');
+    if ($url === '') {
+        return new WP_Error('invalid', 'url requerida', ['status' => 400]);
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    $tmp = download_url($url);
+    if (is_wp_error($tmp)) {
+        return new WP_Error('download_failed', $tmp->get_error_message(), ['status' => 500]);
+    }
+
+    $name = basename((string) wp_parse_url($url, PHP_URL_PATH));
+    if ($name === '' || !preg_match('/\.(jpe?g|png|gif|webp)$/i', $name)) {
+        $name = 'pexels-' . uniqid() . '.jpg';
+    }
+
+    $file_array = ['name' => $name, 'tmp_name' => $tmp];
+    $att_id = media_handle_sideload($file_array, 0, $titulo ?: null);
+    if (is_wp_error($att_id)) {
+        @unlink($tmp);
+        return new WP_Error('upload_failed', $att_id->get_error_message(), ['status' => 500]);
+    }
+    if ($alt !== '') {
+        update_post_meta($att_id, '_wp_attachment_image_alt', $alt);
+    }
+    return rest_ensure_response(ipc_formatear_media(get_post($att_id)));
+}
+
 function ipc_contar_enlaces($content, $post_url = '') {
     $ilinks = 0;
     $elinks = 0;
@@ -2337,6 +2373,11 @@ add_action('rest_api_init', function() {
     register_rest_route('ipc/v1', '/media/(?P<id>\d+)', [
         'methods'             => 'PUT',
         'callback'            => 'ipc_actualizar_media',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
+    register_rest_route('ipc/v1', '/media', [
+        'methods'             => 'POST',
+        'callback'            => 'ipc_subir_media',
         'permission_callback' => 'ipc_check_secret',
     ]);
     register_rest_route('ipc/v1', '/categories/(?P<id>\d+)', [

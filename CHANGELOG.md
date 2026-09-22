@@ -24,6 +24,9 @@
 
 ---
 
+## v2.7.9.0 — Subida de imágenes desde URL (fase 5G)
+- `POST ipc/v1/media`: sube una imagen desde URL (Pexels, etc.) con alt y título
+
 ## v2.7.8.4 — Noindex de posts y páginas vía IPC (fase 5F.6)
 - `POST/PUT ipc/v1/posts` y `POST/PUT ipc/v1/pages` aceptan `noindex` (boolean): escribe/borra `_yoast_wpseo_meta-robots-noindex`
 
