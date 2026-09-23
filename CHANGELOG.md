@@ -24,6 +24,9 @@
 
 ---
 
+## v2.7.10.0 — Imagen destacada de posts vía IPC (fase 5G)
+- `PUT ipc/v1/posts/{id}/thumbnail`: establece o elimina la imagen destacada de un post
+
 ## v2.7.9.0 — Subida de imágenes desde URL (fase 5G)
 - `POST ipc/v1/media`: sube una imagen desde URL (Pexels, etc.) con alt y título
 

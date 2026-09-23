@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.9.0
+ * Version: 2.7.10.0
  * Author: Ikerbit
  */
 
@@ -867,7 +867,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.9.0'
+        '2.7.10.0'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -962,7 +962,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.9.0</h1>
+        <h1>Ikerbit Product Cards v2.7.10.0</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2355,6 +2355,11 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_eliminar_post',
         'permission_callback' => 'ipc_check_secret',
     ]);
+    register_rest_route('ipc/v1', '/posts/(?P<id>\d+)/thumbnail', [
+        'methods'             => 'PUT',
+        'callback'            => 'ipc_establecer_thumbnail',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
     register_rest_route('ipc/v1', '/pages', [
         'methods'             => 'POST',
         'callback'            => 'ipc_crear_page',
@@ -2460,6 +2465,27 @@ function ipc_actualizar_post($request) {
         wp_set_post_tags($post->ID, array_map('intval', $params['tags']), false);
     }
     return rest_ensure_response(['id' => $post->ID, 'url' => get_permalink($post->ID), 'status' => get_post_status($post->ID)]);
+}
+
+// Establece (o elimina) la imagen destacada (featured) de un post.
+function ipc_establecer_thumbnail($request) {
+    $post = get_post(intval($request['id']));
+    if (!$post || $post->post_type !== 'post') {
+        return new WP_Error('not_found', 'No encontrado', ['status' => 404]);
+    }
+    $params = $request->get_json_params();
+    $attachment_id = array_key_exists('attachmentId', $params) ? intval($params['attachmentId']) : null;
+
+    if (!$attachment_id) {
+        delete_post_thumbnail($post->ID);
+    } else {
+        set_post_thumbnail($post->ID, $attachment_id);
+    }
+    return rest_ensure_response([
+        'ok'     => true,
+        'id'     => $post->ID,
+        'imagen' => get_the_post_thumbnail_url($post->ID, 'medium') ?: '',
+    ]);
 }
 
 function ipc_eliminar_page($request) {
