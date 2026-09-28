@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.10.2
+ * Version: 2.7.10.3
  * Author: Ikerbit
  */
 
@@ -2404,6 +2404,11 @@ add_action('rest_api_init', function() {
         'callback'            => 'ipc_actualizar_tag',
         'permission_callback' => 'ipc_check_secret',
     ]);
+    register_rest_route('ipc/v1', '/autor', [
+        'methods'             => 'POST',
+        'callback'            => 'ipc_crear_autor',
+        'permission_callback' => 'ipc_check_secret',
+    ]);
     register_rest_route('ipc/v1', '/render', [
         'methods'             => 'POST',
         'callback'            => 'ipc_render_contenido',
@@ -2418,6 +2423,43 @@ function ipc_render_contenido($request) {
     if ($contenido === '') return rest_ensure_response(['html' => '']);
     $html = do_shortcode($contenido);
     return rest_ensure_response(['html' => $html]);
+}
+
+// Obtiene (o crea) el usuario autor por nombre. Devuelve el ID del usuario WP o 0.
+// Se usa para firmar los posts con una persona real (E-E-A-T): byline + bio + schema Person.
+function ipc_obtener_o_crear_autor($nombre, $bio = '') {
+    $nombre = sanitize_text_field($nombre);
+    if ($nombre === '') return 0;
+    $slug = sanitize_title($nombre);
+    $user = get_user_by('slug', $slug);
+    if ($user) {
+        if ($bio !== '') {
+            wp_update_user(['ID' => $user->ID, 'description' => sanitize_textarea_field($bio), 'display_name' => $nombre]);
+        }
+        return (int) $user->ID;
+    }
+    $user_id = wp_insert_user([
+        'user_login'    => $slug,
+        'user_pass'     => wp_generate_password(24),
+        'user_nicename' => $slug,
+        'display_name'  => $nombre,
+        'nickname'      => $nombre,
+        'first_name'    => $nombre,
+        'description'   => sanitize_textarea_field($bio),
+        'role'          => 'author',
+    ]);
+    return is_wp_error($user_id) ? 0 : (int) $user_id;
+}
+
+// Endpoint POST /ipc/v1/autor: crea/actualiza el autor (nombre+bio) y devuelve su ID.
+function ipc_crear_autor($request) {
+    $params = $request->get_json_params();
+    $nombre = sanitize_text_field($params['nombre'] ?? '');
+    if ($nombre === '') return new WP_Error('invalid', 'nombre requerido', ['status' => 400]);
+    $bio = sanitize_textarea_field($params['bio'] ?? '');
+    $user_id = ipc_obtener_o_crear_autor($nombre, $bio);
+    if (!$user_id) return new WP_Error('create_failed', 'No se pudo crear el autor', ['status' => 500]);
+    return rest_ensure_response(['id' => $user_id, 'nombre' => $nombre]);
 }
 
 function ipc_eliminar_post($request) {
@@ -2441,6 +2483,7 @@ function ipc_crear_post($request) {
         'post_content'  => wp_kses_post($params['contenido'] ?? ''),
         'post_name'     => isset($params['slug']) && $params['slug'] !== '' ? sanitize_title($params['slug']) : '',
         'post_category' => array_map('intval', (array)($params['categorias'] ?? [])),
+        'post_author'   => isset($params['autor']['nombre']) ? ipc_obtener_o_crear_autor($params['autor']['nombre'], $params['autor']['bio'] ?? '') : 0,
     ]);
     if (is_wp_error($post_id)) {
         return new WP_Error('create_failed', $post_id->get_error_message(), ['status' => 500]);
@@ -2464,6 +2507,7 @@ function ipc_actualizar_post($request) {
     if (isset($params['estado'])) $data['post_status'] = sanitize_text_field($params['estado']);
     if (isset($params['slug']) && $params['slug'] !== '') $data['post_name'] = sanitize_title($params['slug']);
     if (isset($params['categorias'])) $data['post_category'] = array_map('intval', (array)$params['categorias']);
+    if (isset($params['autor']['nombre'])) $data['post_author'] = ipc_obtener_o_crear_autor($params['autor']['nombre'], $params['autor']['bio'] ?? '');
 
     $res = wp_update_post($data);
     if (is_wp_error($res)) {

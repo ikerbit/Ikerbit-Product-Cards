@@ -24,6 +24,10 @@
 
 ---
 
+## v2.7.10.3 — Autor de los posts (E-E-A-T): persona + bio
+- `POST ipc/v1/autor`: crea/actualiza un usuario autor (rol `author`) con nombre y bio, y devuelve su ID
+- `ipc/v1/posts` (POST/PUT) acepta `autor: {nombre, bio}`: firma el post con ese autor (`post_author`) y lo crea si no existe
+
 ## v2.7.10.2 — Centrar cards únicas por CSS (independiente del theme)
 - `.ipc-wrap--single { margin: 24px auto; max-width: 360px }`: la card única se centra sola por CSS, sin depender del theme ni de un wrapper inline en el contenido
 
