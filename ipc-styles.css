@@ -23,7 +23,7 @@
 .ipc-wrap--horizontal .ipc-card { min-width: 240px; max-width: 240px; }
 
 /* SINGLE */
-.ipc-wrap--single { margin: 24px 0; max-width: 360px; }
+.ipc-wrap--single { margin: 24px auto; max-width: 360px; }
 
 /* CARD */
 .ipc-card__link {

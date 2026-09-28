@@ -24,6 +24,9 @@
 
 ---
 
+## v2.7.10.2 — Centrar cards únicas por CSS (independiente del theme)
+- `.ipc-wrap--single { margin: 24px auto; max-width: 360px }`: la card única se centra sola por CSS, sin depender del theme ni de un wrapper inline en el contenido
+
 ## v2.7.10.1 — Descuento real (evita mostrar -X% incoherentes)
 - helper `ipc_descuento_real($precio, $precio_old)`: solo hay descuento si el precio old supera al actual
 - aplicado en los 4 puntos de render: card, `single-ipc_oferta.php`, listado admin y widget
