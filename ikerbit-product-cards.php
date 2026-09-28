@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.10.0
+ * Version: 2.7.10.1
  * Author: Ikerbit
  */
 
@@ -559,6 +559,15 @@ function ipc_currency_symbol($code) {
     return $map[strtoupper($code)] ?? '$';
 }
 
+// Descuento REAL calculado a partir de los precios: solo hay descuento si el "precio old"
+// supera al actual. Devuelve el % (entero) o 0. Evita mostrar -X% incoherentes cuando el
+// precio ha subido por encima del precio antiguo.
+function ipc_descuento_real($precio, $precio_old) {
+    $p  = floatval(str_replace(',', '.', (string) $precio));
+    $po = floatval(str_replace(',', '.', (string) $precio_old));
+    return ($p > 0 && $po > $p) ? (int) round((($po - $p) / $po) * 100) : 0;
+}
+
 function ipc_detect_country() {
     if (!empty($_COOKIE['ipc_country']) && preg_match('/^[A-Z]{2}$/', $_COOKIE['ipc_country'])) {
         return strtoupper($_COOKIE['ipc_country']);
@@ -611,7 +620,7 @@ function ipc_render_card($post, $size = 'normal') {
     $rating = floatval($m['rating']);
     $rating_count = esc_html($m['rating_count']);
     $stock = $m['stock'] !== '0' ? true : false;
-    $descuento = esc_html($m['descuento']);
+    $descuento_real = ipc_descuento_real($m['precio'], $m['precio_old']);
     $badge = esc_html($m['badge']);
     $currency_sym = esc_html(ipc_currency_symbol($m['currency'] ?: 'EUR'));
     $custom_desc = $m['custom_description'];
@@ -634,7 +643,7 @@ function ipc_render_card($post, $size = 'normal') {
         <a href="<?php echo $post_url; ?>" class="ipc-card__link" aria-label="<?php echo $titulo; ?>"></a>
         <div class="ipc-card__img-wrap">
             <?php if ($badge): ?><span class="ipc-badge"><?php echo $badge; ?></span><?php endif; ?>
-            <?php if ($descuento): ?><span class="ipc-discount">-<?php echo $descuento; ?>%</span><?php endif; ?>
+            <?php if ($descuento_real > 0): ?><span class="ipc-discount">-<?php echo $descuento_real; ?>%</span><?php endif; ?>
             <span class="ipc-marketplace-tag"><?php echo $marketplace_label; ?></span>
             <?php if ($img): ?>
                 <a href="<?php echo $post_url; ?>" tabindex="-1">
@@ -654,7 +663,7 @@ function ipc_render_card($post, $size = 'normal') {
             <?php endif; ?>
             <div class="ipc-card__price-wrap">
                 <span class="ipc-price"><?php echo $precio; ?><?php echo $currency_sym; ?></span>
-                <?php if ($precio_old): ?><span class="ipc-price-old"><?php echo $precio_old; ?><?php echo $currency_sym; ?></span><?php endif; ?>
+                <?php if ($precio_old && $descuento_real > 0): ?><span class="ipc-price-old"><?php echo $precio_old; ?><?php echo $currency_sym; ?></span><?php endif; ?>
             </div>
             <?php if ($stock): ?><div class="ipc-stock">● En stock</div><?php endif; ?>
             <a href="<?php echo $url; ?>" class="ipc-btn ipc-btn--<?php echo esc_attr($marketplace); ?>" target="_blank" rel="sponsored nofollow noopener" style="position:relative;z-index:2" data-post-id="<?php echo $post->ID; ?>">
@@ -1286,7 +1295,7 @@ function ipc_ofertas_page() {
                 $id         = get_the_ID();
                 $img        = get_post_meta($id, 'ipc_img', true);
                 $precio     = get_post_meta($id, 'ipc_precio', true);
-                $descuento  = get_post_meta($id, 'ipc_descuento', true);
+                $descuento  = ipc_descuento_real($precio, get_post_meta($id, 'ipc_precio_old', true));
                 $marketplace= get_post_meta($id, 'ipc_marketplace', true);
                 $prod_code   = get_post_meta($id, 'ipc_product_code', true);
                 $country    = get_post_meta($id, 'ipc_country', true);
@@ -1894,7 +1903,7 @@ class IPC_Widget_Ofertas extends WP_Widget {
                 $img      = get_post_meta($pid, 'ipc_img', true);
                 $precio   = str_replace('.', ',', get_post_meta($pid, 'ipc_precio', true));
                 $p_old    = str_replace('.', ',', get_post_meta($pid, 'ipc_precio_old', true));
-                $desc     = get_post_meta($pid, 'ipc_descuento', true);
+                $desc     = ipc_descuento_real(get_post_meta($pid, 'ipc_precio', true), get_post_meta($pid, 'ipc_precio_old', true));
                 $url_af   = get_post_meta($pid, 'ipc_url', true);
                 $post_url = get_permalink($pid);
                 $mp       = strtolower(get_post_meta($pid, 'ipc_marketplace', true) ?: 'tienda');
@@ -1910,7 +1919,7 @@ class IPC_Widget_Ofertas extends WP_Widget {
                     <a href="<?php echo esc_url($post_url); ?>" class="ipc-widget__name"><?php echo esc_html(mb_strimwidth(get_the_title(), 0, 60, '…')); ?></a>
                     <div class="ipc-widget__prices">
                         <span class="ipc-widget__price"><?php echo esc_html($precio); ?>€</span>
-                        <?php if ($p_old): ?><span class="ipc-widget__price-old"><?php echo esc_html($p_old); ?>€</span><?php endif; ?>
+                        <?php if ($p_old && $desc > 0): ?><span class="ipc-widget__price-old"><?php echo esc_html($p_old); ?>€</span><?php endif; ?>
                     </div>
                     <?php if ($url_af): ?>
                     <a href="<?php echo esc_url($url_af); ?>" class="ipc-widget__btn ipc-btn" target="_blank" rel="sponsored nofollow noopener" data-post-id="<?php echo $pid; ?>"><?php echo $btn_lbl; ?></a>

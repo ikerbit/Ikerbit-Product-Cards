@@ -133,7 +133,7 @@ if (get_option('ipc_markup_price', 0)) {
         <div class="ipc-single__gallery">
             <div class="ipc-single__img-main">
                 <?php if ($badge): ?><span class="ipc-single__badge"><?php echo esc_html($badge); ?></span><?php endif; ?>
-                <?php if ($descuento): ?><span class="ipc-single__discount">-<?php echo esc_html($descuento); ?>%</span><?php endif; ?>
+                <?php if (ipc_descuento_real($precio_raw, $precio_old_raw) > 0): ?><span class="ipc-single__discount">-<?php echo ipc_descuento_real($precio_raw, $precio_old_raw); ?>%</span><?php endif; ?>
                 <?php if ($img): ?><img src="<?php echo esc_url($img); ?>" alt="<?php echo esc_attr($titulo); ?>" id="ipc-img-main" loading="eager"><?php endif; ?>
             </div>
             <?php if (!empty($imagenes)): ?>
@@ -171,7 +171,7 @@ if (get_option('ipc_markup_price', 0)) {
 
             <div class="ipc-single__price-wrap">
                 <span class="ipc-single__price"><?php echo esc_html($precio); ?><?php echo $currency_sym; ?></span>
-                <?php if ($precio_old): ?><span class="ipc-single__price-old"><?php echo esc_html($precio_old); ?><?php echo $currency_sym; ?></span><?php endif; ?>
+                <?php if ($precio_old && ipc_descuento_real($precio_raw, $precio_old_raw) > 0): ?><span class="ipc-single__price-old"><?php echo esc_html($precio_old); ?><?php echo $currency_sym; ?></span><?php endif; ?>
                 <?php if ($precio_raw && $precio_old_raw && floatval($precio_old_raw) > floatval($precio_raw)):
                     $ahorro = number_format(floatval($precio_old_raw) - floatval($precio_raw), 2, ',', '.'); ?>
                     <span class="ipc-single__saving">Ahorras <?php echo $ahorro; ?>€</span>

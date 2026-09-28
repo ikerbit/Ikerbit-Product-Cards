@@ -24,6 +24,10 @@
 
 ---
 
+## v2.7.10.1 — Descuento real (evita mostrar -X% incoherentes)
+- helper `ipc_descuento_real($precio, $precio_old)`: solo hay descuento si el precio old supera al actual
+- aplicado en los 4 puntos de render: card, `single-ipc_oferta.php`, listado admin y widget
+
 ## v2.7.10.0 — Imagen destacada de posts vía IPC (fase 5G)
 - `PUT ipc/v1/posts/{id}/thumbnail`: establece o elimina la imagen destacada de un post
 
