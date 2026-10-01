@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Ikerbit Product Cards
  * Description: Tarjetas de producto dinámicas con shortcodes. Gestión via REST API desde n8n.
- * Version: 2.7.10.3
+ * Version: 2.7.10.4
  * Author: Ikerbit
  */
 
@@ -876,7 +876,7 @@ add_action('wp_enqueue_scripts', function() {
         'ipc-styles',
         plugin_dir_url(__FILE__) . 'ipc-styles.css',
         [],
-        '2.7.10.3'
+        '2.7.10.4'
     );
     wp_enqueue_style(
         'ipc-fonts',
@@ -971,7 +971,7 @@ function ipc_settings_page() {
     $markup_price    = get_option('ipc_markup_price', 0);
     ?>
     <div class="wrap">
-        <h1>Ikerbit Product Cards v2.7.10.3</h1>
+        <h1>Ikerbit Product Cards v2.7.10.4</h1>
         <h2>Configuración API</h2>
         <form method="post">
             <table class="form-table">
@@ -2474,13 +2474,44 @@ function ipc_eliminar_post($request) {
     return rest_ensure_response(['ok' => true, 'id' => $post->ID]);
 }
 
+// Elimina el bloque de tabla de contenidos de EZ TOC y sus anclas de sección para
+// evitar duplicar anclas y corromper el índice al re-procesar el contenido.
+function ipc_strip_toc($content) {
+    if (empty($content) || strpos($content, 'ez-toc') === false) return $content;
+
+    // Quitar anclas de sección (<span class="ez-toc-section" ...></span>)
+    $content = preg_replace('#<span[^>]*ez-toc-section[^>]*>\s*</span>#i', '', $content);
+
+    // Quitar el contenedor <div id="ez-toc-container">...</div> (soporta divs anidados)
+    if (preg_match('#<div[^>]*id=["\']ez-toc-container["\'][^>]*>#i', $content, $m, PREG_OFFSET_CAPTURE)) {
+        $start = $m[0][1];
+        $pos   = $start + strlen($m[0][0]);
+        $depth = 1;
+        $len   = strlen($content);
+        while ($pos < $len && $depth > 0) {
+            if (preg_match('#</?div\b#i', $content, $mm, PREG_OFFSET_CAPTURE, $pos)) {
+                $tag = $mm[0][0];
+                $depth += (substr($tag, 1, 1) === '/') ? -1 : 1;
+                $pos = $mm[0][1] + strlen($tag);
+            } else {
+                break;
+            }
+        }
+        if ($depth === 0) {
+            $content = substr($content, 0, $start) . substr($content, $pos);
+        }
+    }
+
+    return $content;
+}
+
 function ipc_crear_post($request) {
     $params = $request->get_json_params();
     $post_id = wp_insert_post([
         'post_type'     => 'post',
         'post_status'   => in_array($params['estado'] ?? 'draft', ['draft', 'publish', 'pending'], true) ? $params['estado'] : 'draft',
         'post_title'    => sanitize_text_field($params['titulo'] ?? ''),
-        'post_content'  => wp_kses_post($params['contenido'] ?? ''),
+        'post_content'  => wp_kses_post(ipc_strip_toc($params['contenido'] ?? '')),
         'post_name'     => isset($params['slug']) && $params['slug'] !== '' ? sanitize_title($params['slug']) : '',
         'post_category' => array_map('intval', (array)($params['categorias'] ?? [])),
         'post_author'   => isset($params['autor']['nombre']) ? ipc_obtener_o_crear_autor($params['autor']['nombre'], $params['autor']['bio'] ?? '') : 0,
@@ -2503,7 +2534,7 @@ function ipc_actualizar_post($request) {
     $params = $request->get_json_params();
     $data = ['ID' => $post->ID];
     if (isset($params['titulo'])) $data['post_title'] = sanitize_text_field($params['titulo']);
-    if (isset($params['contenido'])) $data['post_content'] = wp_kses_post($params['contenido']);
+    if (isset($params['contenido'])) $data['post_content'] = wp_kses_post(ipc_strip_toc($params['contenido']));
     if (isset($params['estado'])) $data['post_status'] = sanitize_text_field($params['estado']);
     if (isset($params['slug']) && $params['slug'] !== '') $data['post_name'] = sanitize_title($params['slug']);
     if (isset($params['categorias'])) $data['post_category'] = array_map('intval', (array)$params['categorias']);
@@ -2559,7 +2590,7 @@ function ipc_crear_page($request) {
         'post_type'    => 'page',
         'post_status'  => in_array($params['estado'] ?? 'draft', ['draft', 'publish', 'pending'], true) ? $params['estado'] : 'draft',
         'post_title'   => sanitize_text_field($params['titulo'] ?? ''),
-        'post_content' => wp_kses_post($params['contenido'] ?? ''),
+        'post_content' => wp_kses_post(ipc_strip_toc($params['contenido'] ?? '')),
         'post_name'    => isset($params['slug']) && $params['slug'] !== '' ? sanitize_title($params['slug']) : '',
     ]);
     if (is_wp_error($post_id)) {
@@ -2577,7 +2608,7 @@ function ipc_actualizar_page($request) {
     $params = $request->get_json_params();
     $data = ['ID' => $post->ID];
     if (isset($params['titulo'])) $data['post_title'] = sanitize_text_field($params['titulo']);
-    if (isset($params['contenido'])) $data['post_content'] = wp_kses_post($params['contenido']);
+    if (isset($params['contenido'])) $data['post_content'] = wp_kses_post(ipc_strip_toc($params['contenido']));
     if (isset($params['estado'])) $data['post_status'] = sanitize_text_field($params['estado']);
     if (isset($params['slug']) && $params['slug'] !== '') $data['post_name'] = sanitize_title($params['slug']);
 

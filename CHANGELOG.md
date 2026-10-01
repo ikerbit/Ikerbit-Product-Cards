@@ -24,6 +24,12 @@
 
 ---
 
+---
+
+## v2.7.10.4 — Strip del TOC de EZ TOC en escritura (defensa en profundidad)
+- `ipc_strip_toc()`: elimina el bloque `#ez-toc-container` y las anclas `ez-toc-section` del contenido antes de guardar
+- Aplicado en los 4 puntos de escritura (crear/actualizar posts y páginas) — evita duplicar anclas y corromper el índice
+
 ## v2.7.10.3 — Autor de los posts (E-E-A-T): persona + bio
 - `POST ipc/v1/autor`: crea/actualiza un usuario autor (rol `author`) con nombre y bio, y devuelve su ID
 - `ipc/v1/posts` (POST/PUT) acepta `autor: {nombre, bio}`: firma el post con ese autor (`post_author`) y lo crea si no existe
