@@ -26,6 +26,11 @@
 
 ---
 
+---
+
+## v2.7.10.5 — Devolver `noindex` en listado/detalle de posts
+- `ipc_formatear_post()` ahora incluye el campo `noindex` (booleano) a partir de `_yoast_wpseo_meta-robots-noindex`
+
 ## v2.7.10.4 — Strip del TOC de EZ TOC en escritura (defensa en profundidad)
 - `ipc_strip_toc()`: elimina el bloque `#ez-toc-container` y las anclas `ez-toc-section` del contenido antes de guardar
 - Aplicado en los 4 puntos de escritura (crear/actualizar posts y páginas) — evita duplicar anclas y corromper el índice
